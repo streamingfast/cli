@@ -1,6 +1,8 @@
 # dfuse CLI Library
 
-This is a quick and simple library containing low-level primitive to create quick and hackish CLI applications without all the fuzz.
+This is a quick and simple library containing low-level primitive to create quick and hackish CLI applications without all the fuzz required for a full production app. This library is opiniated and aims at doing CLI tool rapidly.
+
+**Note** This library is experimental and the API could change without notice.
 
 ## Example
 
@@ -9,7 +11,18 @@ The folder [./example](./example) contains example usage of the library. You can
  * Flat - `go run ./example/flat`
  * Nested - `go run ./example/nested`
 
-### Sample
+### Public Helpers
+
+| Method| Description |
+|-|-|
+| `cli.NoError(err, "file not found %q", fileName)` | Exit the process with exit code 1 and prints `fmt.Printf("file not found %q: %w\n", fileName, err)` if `err != nil` |
+| `cli.Ensure(x == 0, "x point should be 0, got %d", x)` | Exit the process with exit code 1 and prints `fmt.Printf("x point should be 0, got %d\n", x)` if condition received is `false` |
+| `cli.Quit("current date %d is too far away", time.Now())` | Exit the process with exit code 1 and prints `fmt.Printf("x point should be 0, got %d\n", x)` |
+| `cli.FileExists("./some/file.png")` | Returns `true` if the file received in argument exists, `false` otherwise |
+| `cli.CopyFile("current date %d is too far away", time.Now())` | Exit the process with exit code 1 and prints `fmt.Printf("x point should be 0, got %d\n", x)` |
+|-|-|
+
+### Sample Boilerplate (copy/paste ready)
 
 ```golang
 package main
