@@ -65,10 +65,14 @@ func (f CommandOptionFunc) apply(cmd *cobra.Command) {
 	f(cmd)
 }
 
-type Description string
+func Description(value string) description {
+	return description(strings.TrimSpace(dedent.Dedent(value)))
+}
 
-func (d Description) apply(cmd *cobra.Command) {
-	cmd.Long = strings.TrimSpace(dedent.Dedent(string(d)))
+type description string
+
+func (d description) apply(cmd *cobra.Command) {
+	cmd.Long = string(d)
 }
 
 func Command(execute func(cmd *cobra.Command, args []string) error, usage, short string, opts ...CommandOption) CommandOption {
@@ -83,10 +87,47 @@ func (f BeforeAllHook) apply(cmd *cobra.Command) {
 	f(cmd)
 }
 
-type Execute func(cmd *cobra.Command, args []string) error
+func Execute(f func(cmd *cobra.Command, args []string) error) execute {
+	return execute(f)
+}
 
-func (e Execute) apply(cmd *cobra.Command) {
+type execute func(cmd *cobra.Command, args []string) error
+
+func (e execute) apply(cmd *cobra.Command) {
 	cmd.RunE = (func(cmd *cobra.Command, args []string) error)(e)
+}
+
+func ExamplePrefixed(prefix string, examples string) example {
+	return prefixedExample("  "+prefix+" ", examples)
+}
+
+func Example(value string) example {
+	return prefixedExample("  ", value)
+}
+
+func prefixedExample(prefix string, value string) example {
+	content := strings.TrimSpace(dedent.Dedent(value))
+	lines := strings.Split(content, "\n")
+	if len(lines) == 0 {
+		return example(prefix)
+	}
+
+	if len(lines) == 1 {
+		return example(prefix + lines[0])
+	}
+
+	formatted := make([]string, len(lines))
+	for i, line := range lines {
+		formatted[i] = prefix + line
+	}
+
+	return example(strings.Join(formatted, "\n"))
+}
+
+type example string
+
+func (e example) apply(cmd *cobra.Command) {
+	cmd.Example = string(e)
 }
 
 func Run(usage, short string, opts ...CommandOption) {

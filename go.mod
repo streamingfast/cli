@@ -3,7 +3,7 @@ module github.com/dfuse-io/cli
 go 1.15
 
 require (
-	github.com/dfuse-io/logging v0.0.0-20210109005628-b97a57253f70
+	github.com/dfuse-io/logging v0.0.0-20210505181639-3964f3e683ea
 	github.com/lithammer/dedent v1.1.0
 	github.com/manifoldco/promptui v0.8.0
 	github.com/spf13/cobra v1.1.3

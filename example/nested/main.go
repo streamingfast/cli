@@ -4,20 +4,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dfuse-io/cli"
+	. "github.com/dfuse-io/cli"
 	"github.com/dfuse-io/logging"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
 
 var zlog = zap.NewNop()
-
-func init() {
-	logging.TestingOverride()
-}
+var tracer = logging.ApplicationLogger("nested", "github.com/acme/nested", &zlog)
 
 func main() {
-	cli.Run("runner", "Some random command runner with 2 sub-commands",
+	Run("runner", "Some random command runner with 2 sub-commands",
 		Command(generateE,
 			"generate",
 			"Quick command summary, without a description",
@@ -29,20 +26,24 @@ func main() {
 				Description of the command, automatically de-indented by using first line identation,
 				use 'go run ./example/nested compare --help to see it in action!
 			`),
+			ExamplePrefixed("runner", `
+				compare relative_file.json
+				compare /absolute/file.json
+			`),
 		),
 	)
 }
 
 func generateE(cmd *cobra.Command, args []string) error {
 	_, err := os.Getwd()
-	cli.NoError(err, "unable to get working directory")
+	NoError(err, "unable to get working directory")
 
 	fmt.Println("Generating something")
 	return nil
 }
 
 func compareE(cmd *cobra.Command, args []string) error {
-	shouldContinue, wasAnswered := cli.AskConfirmation(`Do you want to continue?`)
+	shouldContinue, wasAnswered := AskConfirmation(`Do you want to continue?`)
 	if wasAnswered && shouldContinue {
 
 	} else {
@@ -51,8 +52,3 @@ func compareE(cmd *cobra.Command, args []string) error {
 
 	return nil
 }
-
-var Run = cli.Run
-var Command = cli.Command
-
-type Description = cli.Description

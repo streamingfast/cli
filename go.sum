@@ -46,6 +46,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dfuse-io/logging v0.0.0-20210109005628-b97a57253f70 h1:CuJS05R9jmNlUK8GOxrEELPbfXm0EuGh/30LjkjN5vo=
 github.com/dfuse-io/logging v0.0.0-20210109005628-b97a57253f70/go.mod h1:EoK/8RFbMEteaCaz89uessDTnCWjbbcr+DXcBh4el5o=
+github.com/dfuse-io/logging v0.0.0-20210505181639-3964f3e683ea h1:G4QNUlz+BmOb9u71yrMh5Lr9nrrvIbfet1PHJAcOt+A=
+github.com/dfuse-io/logging v0.0.0-20210505181639-3964f3e683ea/go.mod h1:EoK/8RFbMEteaCaz89uessDTnCWjbbcr+DXcBh4el5o=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
