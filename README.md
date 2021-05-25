@@ -6,10 +6,10 @@ Quick and opinionated library aiming to create CLI application rapidly. The libr
 
 ## Example
 
-The folder [./example](./example) contains example usage of the library. You can run them easily with a `go run ...`
+The folder [./example](./example) contains example usage of the library. You can run them easily them, open a terminal and navigate in the `example` folder, then `go run ...`
 
- * Flat - `go run ./example/flat`
- * Nested - `go run ./example/nested`
+ * Flat - `go run ./flat`
+ * Nested - `go run ./nested`
 
 ### Public Helpers
 
