@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "github.com/dfuse-io/cli"
+	. "github.com/streamingfast/cli"
 	"github.com/dfuse-io/logging"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"

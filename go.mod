@@ -1,4 +1,4 @@
-module github.com/dfuse-io/cli
+module github.com/streamingfast/cli
 
 go 1.15
 

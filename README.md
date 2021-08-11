@@ -1,4 +1,6 @@
-# dfuse CLI Library
+# StreamingFast CLI Library
+[![reference](https://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square)](https://pkg.go.dev/github.com/streamingfast/dgrpc)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Quick and opinionated library aiming to create CLI application rapidly. The library contains CLI primitives (around Cobra/Viper) as well as low-level primitives to ease the creation of developer scripts.
 
@@ -31,8 +33,8 @@ import (
 	"fmt"
 	"os"
 
-	. "github.com/dfuse-io/cli"
-	"github.com/dfuse-io/logging"
+	. "github.com/streamingfast/cli"
+	"github.com/streamingfast/logging"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -80,3 +82,20 @@ func compareE(cmd *cobra.Command, args []string) error {
 	return nil
 }
 ```
+
+## Contributing
+
+**Issues and PR in this repo related strictly to the cli library.**
+
+Report any protocol-specific issues in their
+[respective repositories](https://github.com/streamingfast/streamingfast#protocols)
+
+**Please first refer to the general
+[StreamingFast contribution guide](https://github.com/streamingfast/streamingfast/blob/master/CONTRIBUTING.md)**,
+if you wish to contribute to this code base.
+
+This codebase uses unit tests extensively, please write and run tests.
+
+## License
+
+[Apache 2.0](LICENSE)
