@@ -53,7 +53,7 @@ func main() {
 			"Quick command summary, with a description, the actual usage above is descriptive, you must handle the arguments manually",
 			Description(`
 				Description of the command, automatically de-indented by using first line identation,
-				use 'go run ./example/nested compare --help to see it in action!
+				use 'go run ./example/nested compare --help' to see it in action!
 			`),
 			Example("runner", `
 				compare relative_file.json
@@ -92,7 +92,7 @@ Report any protocol-specific issues in their
 
 **Please first refer to the general
 [StreamingFast contribution guide](https://github.com/streamingfast/streamingfast/blob/master/CONTRIBUTING.md)**,
-if you wish to contribute to this code base.
+if you wish to contribute to this codebase.
 
 This codebase uses unit tests extensively, please write and run tests.
 

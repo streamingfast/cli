@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	. "github.com/streamingfast/cli"
-	"github.com/dfuse-io/logging"
 	"github.com/spf13/cobra"
+	. "github.com/streamingfast/cli"
+	"github.com/streamingfast/logging"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +24,7 @@ func main() {
 			"Quick command summary, with a description, the actual usage above is descriptive, you must handle the arguments manually",
 			Description(`
 				Description of the command, automatically de-indented by using first line identation,
-				use 'go run ./example/nested compare --help to see it in action!
+				use 'go run ./example/nested compare --help' to see it in action!
 			`),
 			ExamplePrefixed("runner", `
 				compare relative_file.json
