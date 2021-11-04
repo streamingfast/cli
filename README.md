@@ -55,7 +55,7 @@ func main() {
 				Description of the command, automatically de-indented by using first line identation,
 				use 'go run ./example/nested compare --help' to see it in action!
 			`),
-			Example("runner", `
+			ExamplePrefixed("runner", `
 				compare relative_file.json
 				compare /absolute/file.json
 			`),
