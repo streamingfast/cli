@@ -9,6 +9,7 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -65,6 +66,51 @@ func (f CommandOptionFunc) apply(cmd *cobra.Command) {
 	f(cmd)
 }
 
+type Flags func(flags *pflag.FlagSet)
+
+func (f Flags) apply(cmd *cobra.Command) {
+	f(cmd.Flags())
+}
+
+type PersistentFlags func(flags *pflag.FlagSet)
+
+func (f PersistentFlags) apply(cmd *cobra.Command) {
+	f(cmd.PersistentFlags())
+}
+
+// MinimumNArgs returns an error if there is not at least N args.
+func MinimumNArgs(n int) Args {
+	return Args(cobra.MinimumNArgs(n))
+}
+
+// MaximumNArgs returns an error if there are more than N args.
+func MaximumNArgs(n int) Args {
+	return Args(cobra.MaximumNArgs(n))
+}
+
+// ExactArgs returns an error if there are not exactly n args.
+func ExactArgs(n int) Args {
+	return Args(cobra.ExactArgs(n))
+}
+
+// ExactValidArgs returns an error if
+// there are not exactly N positional args OR
+// there are any positional args that are not in the `ValidArgs` field of `Command`
+func ExactValidArgs(n int) Args {
+	return Args(cobra.ExactValidArgs(n))
+}
+
+// RangeArgs returns an error if the number of args is not within the expected range.
+func RangeArgs(min int, max int) Args {
+	return Args(cobra.RangeArgs(min, max))
+}
+
+type Args cobra.PositionalArgs
+
+func (a Args) apply(cmd *cobra.Command) {
+	cmd.Args = cobra.PositionalArgs(a)
+}
+
 func Description(value string) description {
 	return description(strings.TrimSpace(dedent.Dedent(value)))
 }
@@ -73,6 +119,12 @@ type description string
 
 func (d description) apply(cmd *cobra.Command) {
 	cmd.Long = string(d)
+}
+
+func Group(usage, short string, opts ...CommandOption) CommandOption {
+	return CommandOptionFunc(func(parent *cobra.Command) {
+		parent.AddCommand(command(nil, usage, short, opts...))
+	})
 }
 
 func Command(execute func(cmd *cobra.Command, args []string) error, usage, short string, opts ...CommandOption) CommandOption {

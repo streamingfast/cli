@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	. "github.com/streamingfast/cli"
 	"github.com/streamingfast/logging"
 	"go.uber.org/zap"
@@ -15,9 +16,16 @@ var tracer = logging.ApplicationLogger("nested", "github.com/acme/nested", &zlog
 
 func main() {
 	Run("runner", "Some random command runner with 2 sub-commands",
-		Command(generateE,
+		Group(
 			"generate",
-			"Quick command summary, without a description",
+			"Quick group summary, without a description",
+			Command(generateImgE,
+				"image",
+				"Quick command summary, without a description",
+				Flags(func(flags *pflag.FlagSet) {
+					flags.String("version", "", "A flag description")
+				}),
+			),
 		),
 		Command(compareE,
 			"compare <input_file>",
@@ -30,11 +38,12 @@ func main() {
 				compare relative_file.json
 				compare /absolute/file.json
 			`),
+			Args(cobra.ExactArgs(2)),
 		),
 	)
 }
 
-func generateE(cmd *cobra.Command, args []string) error {
+func generateImgE(cmd *cobra.Command, args []string) error {
 	_, err := os.Getwd()
 	NoError(err, "unable to get working directory")
 
