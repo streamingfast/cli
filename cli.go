@@ -39,6 +39,16 @@ func FileExists(path string) bool {
 	return !stat.IsDir()
 }
 
+func DirectoryExists(path string) bool {
+	stat, err := os.Stat(path)
+	if err != nil {
+		// For this script, we don't care
+		return false
+	}
+
+	return stat.IsDir()
+}
+
 func Ensure(condition bool, message string, args ...interface{}) {
 	if !condition {
 		Quit(message, args...)
