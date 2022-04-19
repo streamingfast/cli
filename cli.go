@@ -267,3 +267,9 @@ func AskConfirmation(label string, args ...interface{}) (answeredYes bool, wasAn
 
 	return
 }
+
+// FlagDescription accepts a multi line indented description and transform it into a single line flag description.
+// This method is used to make it easier to define long flag messages.
+func FlagDescription(in string, args ...interface{}) string {
+	return fmt.Sprintf(strings.Join(strings.Split(string(Description(in)), "\n"), " "), args...)
+}
