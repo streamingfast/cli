@@ -1,6 +1,6 @@
 module github.com/streamingfast/cli
 
-go 1.15
+go 1.16
 
 require (
 	github.com/lithammer/dedent v1.1.0
