@@ -10,11 +10,11 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"go.uber.org/zap"
+	"github.com/streamingfast/logging"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-var zlog = zap.NewNop()
+var zlog, _ = logging.PackageLogger("cli", "github.com/streamingfast/cli")
 
 func CopyFile(inPath, outPath string) {
 	inFile, err := os.Open(inPath)
@@ -149,6 +149,12 @@ func (f BeforeAllHook) apply(cmd *cobra.Command) {
 	f(cmd)
 }
 
+type AfterAllHook func(cmd *cobra.Command)
+
+func (f AfterAllHook) apply(cmd *cobra.Command) {
+	f(cmd)
+}
+
 func Execute(f func(cmd *cobra.Command, args []string) error) execute {
 	return execute(f)
 }
@@ -165,6 +171,12 @@ func ExamplePrefixed(prefix string, examples string) example {
 
 func Example(value string) example {
 	return prefixedExample("  ", value)
+}
+
+func ConfigureViper(prefix string) CommandOption {
+	return AfterAllHook(func(cmd *cobra.Command) {
+		ConfigureViperForCommand(cmd, prefix)
+	})
 }
 
 func prefixedExample(prefix string, value string) example {
@@ -230,9 +242,15 @@ func command(execute func(cmd *cobra.Command, args []string) error, usage, short
 
 	for _, opt := range opts {
 		switch opt.(type) {
-		case BeforeAllHook:
+		case BeforeAllHook, AfterAllHook:
 			continue
 		default:
+			opt.apply(command)
+		}
+	}
+
+	for _, opt := range opts {
+		if _, ok := opt.(AfterAllHook); ok {
 			opt.apply(command)
 		}
 	}

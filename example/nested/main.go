@@ -38,7 +38,7 @@ func main() {
 				compare relative_file.json
 				compare /absolute/file.json
 			`),
-			Args(cobra.ExactArgs(2)),
+			ExactArgs(2),
 		),
 	)
 }
