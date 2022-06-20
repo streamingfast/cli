@@ -88,6 +88,21 @@ func (f PersistentFlags) apply(cmd *cobra.Command) {
 	f(cmd.PersistentFlags())
 }
 
+// NoArgs returns an error if any args are included.
+func NoArgs(n int) Args {
+	return Args(cobra.NoArgs)
+}
+
+// OnlyValidArgs returns an error if any args are not in the list of ValidArgs.
+func OnlyValidArgs(n int) Args {
+	return Args(cobra.OnlyValidArgs)
+}
+
+// ArbitraryArgs never returns an error.
+func ArbitraryArgs(n int) Args {
+	return Args(cobra.ArbitraryArgs)
+}
+
 // MinimumNArgs returns an error if there is not at least N args.
 func MinimumNArgs(n int) Args {
 	return Args(cobra.MinimumNArgs(n))
