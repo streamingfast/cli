@@ -284,8 +284,11 @@ func AskConfirmation(label string, args ...interface{}) (answeredYes bool, wasAn
 	}
 
 	prompt := promptui.Prompt{
-		Label:     dedent.Dedent(fmt.Sprintf(label, args...)),
-		IsConfirm: true,
+		Label:       dedent.Dedent(fmt.Sprintf(label, args...)),
+		Default:     "N",
+		AllowEdit:   true,
+		IsConfirm:   true,
+		HideEntered: true,
 	}
 
 	_, err := prompt.Run()
