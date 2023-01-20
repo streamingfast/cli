@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/lithammer/dedent"
@@ -194,20 +195,32 @@ func ConfigureViper(prefix string) CommandOption {
 	})
 }
 
+var isSpaceOnlyRegex = regexp.MustCompile(`^\s*$`)
+var isCommentExampleLineRegex = regexp.MustCompile(`^\s*#`)
+
 func prefixedExample(prefix string, value string) example {
 	content := strings.TrimSpace(dedent.Dedent(value))
 	lines := strings.Split(content, "\n")
-	if len(lines) == 0 {
-		return example(prefix)
-	}
 
-	if len(lines) == 1 {
-		return example(prefix + lines[0])
+	if len(lines) == 0 || len(lines) == 1 {
+		// No line separator found, in all cases 'content' is our only "line"
+		if isSpaceOnlyRegex.MatchString(content) {
+			return example(content)
+		}
+
+		return example(prefix + content)
 	}
 
 	formatted := make([]string, len(lines))
 	for i, line := range lines {
-		formatted[i] = prefix + line
+		switch {
+		case isSpaceOnlyRegex.MatchString(line):
+			formatted[i] = line
+		case isCommentExampleLineRegex.MatchString(line):
+			formatted[i] = "  " + line
+		default:
+			formatted[i] = prefix + line
+		}
 	}
 
 	return example(strings.Join(formatted, "\n"))
