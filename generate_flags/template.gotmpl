@@ -10,6 +10,17 @@ import (
 )
 
 {{range .Definitions}}
+// MustGet{{.Name | pascalCase}}Provided is exactly like [MustGet{{.Name | pascalCase}}] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGet{{.Name | pascalCase}}Provided(cmd *cobra.Command, name string) ({{.Type}}, bool) {
+	out, err := cmd.Flags().Get{{.Name | pascalCase}}(name)
+	if err != nil {
+		panic(fmt.Errorf("flags Get{{.Name | pascalCase}}: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGet{{.Name | pascalCase}} returns the `{{.Type}}` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().Get{{.Name | pascalCase}}(name)'.
 //

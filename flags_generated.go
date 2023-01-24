@@ -10,6 +10,17 @@ import (
 )
 
 
+// MustGetBoolSliceProvided is exactly like [MustGetBoolSlice] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetBoolSliceProvided(cmd *cobra.Command, name string) ([]bool, bool) {
+	out, err := cmd.Flags().GetBoolSlice(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetBoolSlice: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetBoolSlice returns the `[]bool` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetBoolSlice(name)'.
 //
@@ -28,6 +39,17 @@ func MustGetBoolSlice(cmd *cobra.Command, name string) []bool {
 // `name`, it's an helper over 'cmd.Flags().GetBoolSlice(name)'.
 func GetBoolSlice(cmd *cobra.Command, name string) ([]bool, error) {
 	return cmd.Flags().GetBoolSlice(name)
+}
+
+// MustGetUint8Provided is exactly like [MustGetUint8] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetUint8Provided(cmd *cobra.Command, name string) (uint8, bool) {
+	out, err := cmd.Flags().GetUint8(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetUint8: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetUint8 returns the `uint8` value for the flag referenced by
@@ -50,6 +72,17 @@ func GetUint8(cmd *cobra.Command, name string) (uint8, error) {
 	return cmd.Flags().GetUint8(name)
 }
 
+// MustGetStringSliceProvided is exactly like [MustGetStringSlice] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetStringSliceProvided(cmd *cobra.Command, name string) ([]string, bool) {
+	out, err := cmd.Flags().GetStringSlice(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetStringSlice: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetStringSlice returns the `[]string` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetStringSlice(name)'.
 //
@@ -68,6 +101,17 @@ func MustGetStringSlice(cmd *cobra.Command, name string) []string {
 // `name`, it's an helper over 'cmd.Flags().GetStringSlice(name)'.
 func GetStringSlice(cmd *cobra.Command, name string) ([]string, error) {
 	return cmd.Flags().GetStringSlice(name)
+}
+
+// MustGetIPSliceProvided is exactly like [MustGetIPSlice] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetIPSliceProvided(cmd *cobra.Command, name string) ([]net.IP, bool) {
+	out, err := cmd.Flags().GetIPSlice(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetIPSlice: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetIPSlice returns the `[]net.IP` value for the flag referenced by
@@ -90,6 +134,17 @@ func GetIPSlice(cmd *cobra.Command, name string) ([]net.IP, error) {
 	return cmd.Flags().GetIPSlice(name)
 }
 
+// MustGetStringToStringProvided is exactly like [MustGetStringToString] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetStringToStringProvided(cmd *cobra.Command, name string) (map[string]string, bool) {
+	out, err := cmd.Flags().GetStringToString(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetStringToString: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetStringToString returns the `map[string]string` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetStringToString(name)'.
 //
@@ -108,6 +163,17 @@ func MustGetStringToString(cmd *cobra.Command, name string) map[string]string {
 // `name`, it's an helper over 'cmd.Flags().GetStringToString(name)'.
 func GetStringToString(cmd *cobra.Command, name string) (map[string]string, error) {
 	return cmd.Flags().GetStringToString(name)
+}
+
+// MustGetFloat64Provided is exactly like [MustGetFloat64] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetFloat64Provided(cmd *cobra.Command, name string) (float64, bool) {
+	out, err := cmd.Flags().GetFloat64(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetFloat64: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetFloat64 returns the `float64` value for the flag referenced by
@@ -130,6 +196,17 @@ func GetFloat64(cmd *cobra.Command, name string) (float64, error) {
 	return cmd.Flags().GetFloat64(name)
 }
 
+// MustGetUint32Provided is exactly like [MustGetUint32] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetUint32Provided(cmd *cobra.Command, name string) (uint32, bool) {
+	out, err := cmd.Flags().GetUint32(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetUint32: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetUint32 returns the `uint32` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetUint32(name)'.
 //
@@ -148,6 +225,17 @@ func MustGetUint32(cmd *cobra.Command, name string) uint32 {
 // `name`, it's an helper over 'cmd.Flags().GetUint32(name)'.
 func GetUint32(cmd *cobra.Command, name string) (uint32, error) {
 	return cmd.Flags().GetUint32(name)
+}
+
+// MustGetDurationSliceProvided is exactly like [MustGetDurationSlice] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetDurationSliceProvided(cmd *cobra.Command, name string) ([]time.Duration, bool) {
+	out, err := cmd.Flags().GetDurationSlice(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetDurationSlice: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetDurationSlice returns the `[]time.Duration` value for the flag referenced by
@@ -170,6 +258,17 @@ func GetDurationSlice(cmd *cobra.Command, name string) ([]time.Duration, error) 
 	return cmd.Flags().GetDurationSlice(name)
 }
 
+// MustGetUint16Provided is exactly like [MustGetUint16] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetUint16Provided(cmd *cobra.Command, name string) (uint16, bool) {
+	out, err := cmd.Flags().GetUint16(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetUint16: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetUint16 returns the `uint16` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetUint16(name)'.
 //
@@ -188,6 +287,17 @@ func MustGetUint16(cmd *cobra.Command, name string) uint16 {
 // `name`, it's an helper over 'cmd.Flags().GetUint16(name)'.
 func GetUint16(cmd *cobra.Command, name string) (uint16, error) {
 	return cmd.Flags().GetUint16(name)
+}
+
+// MustGetFloat32SliceProvided is exactly like [MustGetFloat32Slice] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetFloat32SliceProvided(cmd *cobra.Command, name string) ([]float32, bool) {
+	out, err := cmd.Flags().GetFloat32Slice(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetFloat32Slice: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetFloat32Slice returns the `[]float32` value for the flag referenced by
@@ -210,6 +320,17 @@ func GetFloat32Slice(cmd *cobra.Command, name string) ([]float32, error) {
 	return cmd.Flags().GetFloat32Slice(name)
 }
 
+// MustGetDurationProvided is exactly like [MustGetDuration] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetDurationProvided(cmd *cobra.Command, name string) (time.Duration, bool) {
+	out, err := cmd.Flags().GetDuration(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetDuration: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetDuration returns the `time.Duration` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetDuration(name)'.
 //
@@ -228,6 +349,17 @@ func MustGetDuration(cmd *cobra.Command, name string) time.Duration {
 // `name`, it's an helper over 'cmd.Flags().GetDuration(name)'.
 func GetDuration(cmd *cobra.Command, name string) (time.Duration, error) {
 	return cmd.Flags().GetDuration(name)
+}
+
+// MustGetInt64Provided is exactly like [MustGetInt64] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetInt64Provided(cmd *cobra.Command, name string) (int64, bool) {
+	out, err := cmd.Flags().GetInt64(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetInt64: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetInt64 returns the `int64` value for the flag referenced by
@@ -250,6 +382,17 @@ func GetInt64(cmd *cobra.Command, name string) (int64, error) {
 	return cmd.Flags().GetInt64(name)
 }
 
+// MustGetUintSliceProvided is exactly like [MustGetUintSlice] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetUintSliceProvided(cmd *cobra.Command, name string) ([]uint, bool) {
+	out, err := cmd.Flags().GetUintSlice(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetUintSlice: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetUintSlice returns the `[]uint` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetUintSlice(name)'.
 //
@@ -268,6 +411,17 @@ func MustGetUintSlice(cmd *cobra.Command, name string) []uint {
 // `name`, it's an helper over 'cmd.Flags().GetUintSlice(name)'.
 func GetUintSlice(cmd *cobra.Command, name string) ([]uint, error) {
 	return cmd.Flags().GetUintSlice(name)
+}
+
+// MustGetBoolProvided is exactly like [MustGetBool] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetBoolProvided(cmd *cobra.Command, name string) (bool, bool) {
+	out, err := cmd.Flags().GetBool(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetBool: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetBool returns the `bool` value for the flag referenced by
@@ -290,6 +444,17 @@ func GetBool(cmd *cobra.Command, name string) (bool, error) {
 	return cmd.Flags().GetBool(name)
 }
 
+// MustGetInt32SliceProvided is exactly like [MustGetInt32Slice] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetInt32SliceProvided(cmd *cobra.Command, name string) ([]int32, bool) {
+	out, err := cmd.Flags().GetInt32Slice(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetInt32Slice: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetInt32Slice returns the `[]int32` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetInt32Slice(name)'.
 //
@@ -308,6 +473,17 @@ func MustGetInt32Slice(cmd *cobra.Command, name string) []int32 {
 // `name`, it's an helper over 'cmd.Flags().GetInt32Slice(name)'.
 func GetInt32Slice(cmd *cobra.Command, name string) ([]int32, error) {
 	return cmd.Flags().GetInt32Slice(name)
+}
+
+// MustGetInt32Provided is exactly like [MustGetInt32] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetInt32Provided(cmd *cobra.Command, name string) (int32, bool) {
+	out, err := cmd.Flags().GetInt32(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetInt32: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetInt32 returns the `int32` value for the flag referenced by
@@ -330,6 +506,17 @@ func GetInt32(cmd *cobra.Command, name string) (int32, error) {
 	return cmd.Flags().GetInt32(name)
 }
 
+// MustGetStringToIntProvided is exactly like [MustGetStringToInt] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetStringToIntProvided(cmd *cobra.Command, name string) (map[string]int, bool) {
+	out, err := cmd.Flags().GetStringToInt(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetStringToInt: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetStringToInt returns the `map[string]int` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetStringToInt(name)'.
 //
@@ -348,6 +535,17 @@ func MustGetStringToInt(cmd *cobra.Command, name string) map[string]int {
 // `name`, it's an helper over 'cmd.Flags().GetStringToInt(name)'.
 func GetStringToInt(cmd *cobra.Command, name string) (map[string]int, error) {
 	return cmd.Flags().GetStringToInt(name)
+}
+
+// MustGetInt16Provided is exactly like [MustGetInt16] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetInt16Provided(cmd *cobra.Command, name string) (int16, bool) {
+	out, err := cmd.Flags().GetInt16(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetInt16: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetInt16 returns the `int16` value for the flag referenced by
@@ -370,6 +568,17 @@ func GetInt16(cmd *cobra.Command, name string) (int16, error) {
 	return cmd.Flags().GetInt16(name)
 }
 
+// MustGetIPProvided is exactly like [MustGetIP] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetIPProvided(cmd *cobra.Command, name string) (net.IP, bool) {
+	out, err := cmd.Flags().GetIP(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetIP: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetIP returns the `net.IP` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetIP(name)'.
 //
@@ -388,6 +597,17 @@ func MustGetIP(cmd *cobra.Command, name string) net.IP {
 // `name`, it's an helper over 'cmd.Flags().GetIP(name)'.
 func GetIP(cmd *cobra.Command, name string) (net.IP, error) {
 	return cmd.Flags().GetIP(name)
+}
+
+// MustGetIPNetProvided is exactly like [MustGetIPNet] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetIPNetProvided(cmd *cobra.Command, name string) (net.IPNet, bool) {
+	out, err := cmd.Flags().GetIPNet(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetIPNet: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetIPNet returns the `net.IPNet` value for the flag referenced by
@@ -410,6 +630,17 @@ func GetIPNet(cmd *cobra.Command, name string) (net.IPNet, error) {
 	return cmd.Flags().GetIPNet(name)
 }
 
+// MustGetUint64Provided is exactly like [MustGetUint64] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetUint64Provided(cmd *cobra.Command, name string) (uint64, bool) {
+	out, err := cmd.Flags().GetUint64(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetUint64: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetUint64 returns the `uint64` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetUint64(name)'.
 //
@@ -428,6 +659,17 @@ func MustGetUint64(cmd *cobra.Command, name string) uint64 {
 // `name`, it's an helper over 'cmd.Flags().GetUint64(name)'.
 func GetUint64(cmd *cobra.Command, name string) (uint64, error) {
 	return cmd.Flags().GetUint64(name)
+}
+
+// MustGetStringToInt64Provided is exactly like [MustGetStringToInt64] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetStringToInt64Provided(cmd *cobra.Command, name string) (map[string]int64, bool) {
+	out, err := cmd.Flags().GetStringToInt64(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetStringToInt64: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetStringToInt64 returns the `map[string]int64` value for the flag referenced by
@@ -450,6 +692,17 @@ func GetStringToInt64(cmd *cobra.Command, name string) (map[string]int64, error)
 	return cmd.Flags().GetStringToInt64(name)
 }
 
+// MustGetFloat32Provided is exactly like [MustGetFloat32] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetFloat32Provided(cmd *cobra.Command, name string) (float32, bool) {
+	out, err := cmd.Flags().GetFloat32(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetFloat32: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetFloat32 returns the `float32` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetFloat32(name)'.
 //
@@ -468,6 +721,17 @@ func MustGetFloat32(cmd *cobra.Command, name string) float32 {
 // `name`, it's an helper over 'cmd.Flags().GetFloat32(name)'.
 func GetFloat32(cmd *cobra.Command, name string) (float32, error) {
 	return cmd.Flags().GetFloat32(name)
+}
+
+// MustGetIPv4MaskProvided is exactly like [MustGetIPv4Mask] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetIPv4MaskProvided(cmd *cobra.Command, name string) (net.IPMask, bool) {
+	out, err := cmd.Flags().GetIPv4Mask(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetIPv4Mask: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetIPv4Mask returns the `net.IPMask` value for the flag referenced by
@@ -490,6 +754,17 @@ func GetIPv4Mask(cmd *cobra.Command, name string) (net.IPMask, error) {
 	return cmd.Flags().GetIPv4Mask(name)
 }
 
+// MustGetCountProvided is exactly like [MustGetCount] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetCountProvided(cmd *cobra.Command, name string) (int, bool) {
+	out, err := cmd.Flags().GetCount(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetCount: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetCount returns the `int` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetCount(name)'.
 //
@@ -508,6 +783,17 @@ func MustGetCount(cmd *cobra.Command, name string) int {
 // `name`, it's an helper over 'cmd.Flags().GetCount(name)'.
 func GetCount(cmd *cobra.Command, name string) (int, error) {
 	return cmd.Flags().GetCount(name)
+}
+
+// MustGetIntProvided is exactly like [MustGetInt] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetIntProvided(cmd *cobra.Command, name string) (int, bool) {
+	out, err := cmd.Flags().GetInt(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetInt: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetInt returns the `int` value for the flag referenced by
@@ -530,6 +816,17 @@ func GetInt(cmd *cobra.Command, name string) (int, error) {
 	return cmd.Flags().GetInt(name)
 }
 
+// MustGetUintProvided is exactly like [MustGetUint] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetUintProvided(cmd *cobra.Command, name string) (uint, bool) {
+	out, err := cmd.Flags().GetUint(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetUint: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetUint returns the `uint` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetUint(name)'.
 //
@@ -548,6 +845,17 @@ func MustGetUint(cmd *cobra.Command, name string) uint {
 // `name`, it's an helper over 'cmd.Flags().GetUint(name)'.
 func GetUint(cmd *cobra.Command, name string) (uint, error) {
 	return cmd.Flags().GetUint(name)
+}
+
+// MustGetFloat64SliceProvided is exactly like [MustGetFloat64Slice] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetFloat64SliceProvided(cmd *cobra.Command, name string) ([]float64, bool) {
+	out, err := cmd.Flags().GetFloat64Slice(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetFloat64Slice: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetFloat64Slice returns the `[]float64` value for the flag referenced by
@@ -570,6 +878,17 @@ func GetFloat64Slice(cmd *cobra.Command, name string) ([]float64, error) {
 	return cmd.Flags().GetFloat64Slice(name)
 }
 
+// MustGetInt8Provided is exactly like [MustGetInt8] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetInt8Provided(cmd *cobra.Command, name string) (int8, bool) {
+	out, err := cmd.Flags().GetInt8(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetInt8: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetInt8 returns the `int8` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetInt8(name)'.
 //
@@ -588,6 +907,17 @@ func MustGetInt8(cmd *cobra.Command, name string) int8 {
 // `name`, it's an helper over 'cmd.Flags().GetInt8(name)'.
 func GetInt8(cmd *cobra.Command, name string) (int8, error) {
 	return cmd.Flags().GetInt8(name)
+}
+
+// MustGetBytesHexProvided is exactly like [MustGetBytesHex] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetBytesHexProvided(cmd *cobra.Command, name string) ([]byte, bool) {
+	out, err := cmd.Flags().GetBytesHex(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetBytesHex: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetBytesHex returns the `[]byte` value for the flag referenced by
@@ -610,6 +940,17 @@ func GetBytesHex(cmd *cobra.Command, name string) ([]byte, error) {
 	return cmd.Flags().GetBytesHex(name)
 }
 
+// MustGetBytesBase64Provided is exactly like [MustGetBytesBase64] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetBytesBase64Provided(cmd *cobra.Command, name string) ([]byte, bool) {
+	out, err := cmd.Flags().GetBytesBase64(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetBytesBase64: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetBytesBase64 returns the `[]byte` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetBytesBase64(name)'.
 //
@@ -628,6 +969,17 @@ func MustGetBytesBase64(cmd *cobra.Command, name string) []byte {
 // `name`, it's an helper over 'cmd.Flags().GetBytesBase64(name)'.
 func GetBytesBase64(cmd *cobra.Command, name string) ([]byte, error) {
 	return cmd.Flags().GetBytesBase64(name)
+}
+
+// MustGetIntSliceProvided is exactly like [MustGetIntSlice] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetIntSliceProvided(cmd *cobra.Command, name string) ([]int, bool) {
+	out, err := cmd.Flags().GetIntSlice(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetIntSlice: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetIntSlice returns the `[]int` value for the flag referenced by
@@ -650,6 +1002,17 @@ func GetIntSlice(cmd *cobra.Command, name string) ([]int, error) {
 	return cmd.Flags().GetIntSlice(name)
 }
 
+// MustGetStringProvided is exactly like [MustGetString] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetStringProvided(cmd *cobra.Command, name string) (string, bool) {
+	out, err := cmd.Flags().GetString(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetString: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetString returns the `string` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetString(name)'.
 //
@@ -670,6 +1033,17 @@ func GetString(cmd *cobra.Command, name string) (string, error) {
 	return cmd.Flags().GetString(name)
 }
 
+// MustGetStringArrayProvided is exactly like [MustGetStringArray] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetStringArrayProvided(cmd *cobra.Command, name string) ([]string, bool) {
+	out, err := cmd.Flags().GetStringArray(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetStringArray: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
+}
+
 // MustGetStringArray returns the `[]string` value for the flag referenced by
 // `name`, it's an helper over 'cmd.Flags().GetStringArray(name)'.
 //
@@ -688,6 +1062,17 @@ func MustGetStringArray(cmd *cobra.Command, name string) []string {
 // `name`, it's an helper over 'cmd.Flags().GetStringArray(name)'.
 func GetStringArray(cmd *cobra.Command, name string) ([]string, error) {
 	return cmd.Flags().GetStringArray(name)
+}
+
+// MustGetInt64SliceProvided is exactly like [MustGetInt64Slice] but
+// also returns if the flag was actually provided (a.k.a changed) by the user.
+func MustGetInt64SliceProvided(cmd *cobra.Command, name string) ([]int64, bool) {
+	out, err := cmd.Flags().GetInt64Slice(name)
+	if err != nil {
+		panic(fmt.Errorf("flags GetInt64Slice: %w", err))
+	}
+
+	return out, cmd.Flags().Changed(name)
 }
 
 // MustGetInt64Slice returns the `[]int64` value for the flag referenced by
