@@ -9,6 +9,11 @@ import (
 	"go.uber.org/zap"
 )
 
+// Generate the flags based on Go code in this project directly, this however
+// creates a chicken & egg problem if there is compilation error within the project
+// but to fix them we must re-generate it.
+//go:generate go run ./generate_flags flags_generated.go cli
+
 // ConfigureViperForCommand sets env prefix to 'prefix', automatic env to check in env
 // for any flags coming from anywhere (flag, config, default, etc.) as well as
 // scoping flags to the command it's defined in for global acces.
