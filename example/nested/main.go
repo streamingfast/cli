@@ -8,14 +8,16 @@ import (
 	"github.com/spf13/pflag"
 	. "github.com/streamingfast/cli"
 	"github.com/streamingfast/logging"
-	"go.uber.org/zap"
 )
 
-var zlog = zap.NewNop()
-var tracer = logging.ApplicationLogger("nested", "github.com/acme/nested", &zlog)
+var zlog, tracer = logging.RootLogger("project", "github.com/acme/project")
 
 func main() {
-	Run("runner", "Some random command runner with 2 sub-commands",
+	logging.InstantiateLoggers()
+
+	Run(
+		"runner",
+		"Some random command runner with 2 sub-commands",
 		Group(
 			"generate",
 			"Quick group summary, without a description",

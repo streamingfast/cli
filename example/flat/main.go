@@ -1,19 +1,23 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	. "github.com/streamingfast/cli"
 	"github.com/streamingfast/logging"
-	"go.uber.org/zap"
 )
 
-var zlog = zap.NewNop()
-var tracer = logging.ApplicationLogger("nested", "github.com/acme/nested", &zlog)
+var zlog, tracer = logging.RootLogger("project", "github.com/acme/project")
 
 func main() {
+	logging.InstantiateLoggers()
+
 	Run(
-		"flat", "A flat command",
+		"flat <arg> [<optional_arg]",
+		"A flat command short description",
 		Execute(run),
+		MinimumNArgs(1),
 		Description(`
 			Description of the command, automatically de-indented by using first line identation,
 			use 'runner generate --help to see it in action!
@@ -32,5 +36,5 @@ func run(cmd *cobra.Command, args []string) error {
 		zlog.Debug("Will be displayed if TRACE=true, TRACE=* or TRACE=flat (specific logger) is specified")
 	}
 
-	return nil
+	return fmt.Errorf("testing")
 }
