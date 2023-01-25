@@ -234,12 +234,37 @@ func (e example) apply(cmd *cobra.Command) {
 
 func Run(usage, short string, opts ...CommandOption) {
 	cmd := Root(usage, short, opts...)
+
+	cmd.SilenceUsage = false
+	cmd.RunE = silenceUsageOnError(cmd.RunE)
+
 	err := cmd.Execute()
 
 	// FIXME: What is the right behavior on error from here?
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
+	}
+}
+
+// silenceUsageOnError performs a little trick so that error coming out of the actual executor
+// does not trigger a rendering of the usage. By default, cobra prints the usage on flag/args error
+// as well as on error coming form the executor.
+//
+// That is bad default behavior as in almost all cases, error coming from the executor are not
+// usage error.
+//
+// The trick is to intercept the executor error, and if non-nil, before returning the actual
+// error to cobra, we set `cmd.SilenceUsage = true` if the error is non-nil, which will
+// properly avoid printing the usage.
+func silenceUsageOnError(fn func(cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		err := fn(cmd, args)
+		if err != nil {
+			cmd.SilenceUsage = true
+		}
+
+		return err
 	}
 }
 
