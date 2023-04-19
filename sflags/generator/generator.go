@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
 	"text/template"
 
 	"github.com/iancoleman/strcase"
@@ -17,6 +16,9 @@ import (
 
 //go:embed *.gotmpl
 var templates embed.FS
+
+var noCast = ""
+var viperUnsupported = ""
 
 // To generate the definition list, you can use the following command. But first,
 // find the path to pflag package or download locally a version. The rest of the
@@ -30,41 +32,41 @@ var templates embed.FS
 // This will list all 'GetXXX' function, then perform multi-cursor selection in your editor
 // and extract the part after 'Get' and the actual type.
 var definitions = []Definition{
-	{"BoolSlice", "[]bool"},
-	{"Uint8", "uint8"},
-	{"StringSlice", "[]string"},
-	{"IPSlice", "[]net.IP"},
-	{"StringToString", "map[string]string"},
-	{"Float64", "float64"},
-	{"Uint32", "uint32"},
-	{"DurationSlice", "[]time.Duration"},
-	{"Uint16", "uint16"},
-	{"Float32Slice", "[]float32"},
-	{"Duration", "time.Duration"},
-	{"Int64", "int64"},
-	{"UintSlice", "[]uint"},
-	{"Bool", "bool"},
-	{"Int32Slice", "[]int32"},
-	{"Int32", "int32"},
-	{"StringToInt", "map[string]int"},
-	{"Int16", "int16"},
-	{"IP", "net.IP"},
-	{"IPNet", "net.IPNet"},
-	{"Uint64", "uint64"},
-	{"StringToInt64", "map[string]int64"},
-	{"Float32", "float32"},
-	{"IPv4Mask", "net.IPMask"},
-	{"Count", "int"},
-	{"Int", "int"},
-	{"Uint", "uint"},
-	{"Float64Slice", "[]float64"},
-	{"Int8", "int8"},
-	{"BytesHex", "[]byte"},
-	{"BytesBase64", "[]byte"},
-	{"IntSlice", "[]int"},
-	{"String", "string"},
-	{"StringArray", "[]string"},
-	{"Int64Slice", "[]int64"},
+	{"BoolSlice", "[]bool", viperUnsupported, noCast},
+	{"Uint8", "uint8", "Uint16", "uint8"},
+	{"StringSlice", "[]string", "StringSlice", noCast},
+	{"IPSlice", "[]net.IP", viperUnsupported, noCast},
+	{"StringToString", "map[string]string", "StringMapString", noCast},
+	{"Float64", "float64", "Float64", noCast},
+	{"Uint32", "uint32", "Uint32", noCast},
+	{"DurationSlice", "[]time.Duration", viperUnsupported, noCast},
+	{"Uint16", "uint16", "Uint16", noCast},
+	{"Float32Slice", "[]float32", viperUnsupported, noCast},
+	{"Duration", "time.Duration", "Duration", noCast},
+	{"Int64", "int64", "Int64", noCast},
+	{"UintSlice", "[]uint", viperUnsupported, noCast},
+	{"Bool", "bool", "Bool", noCast},
+	{"Int32Slice", "[]int32", viperUnsupported, noCast},
+	{"Int32", "int32", "Int32", noCast},
+	{"StringToInt", "map[string]int", viperUnsupported, noCast},
+	{"Int16", "int16", "Int32", "int16"},
+	{"IP", "net.IP", viperUnsupported, noCast},
+	{"IPNet", "net.IPNet", viperUnsupported, noCast},
+	{"Uint64", "uint64", "Uint64", noCast},
+	{"StringToInt64", "map[string]int64", viperUnsupported, noCast},
+	{"Float32", "float32", "Float64", "float32"},
+	{"IPv4Mask", "net.IPMask", viperUnsupported, noCast},
+	{"Count", "int", viperUnsupported, noCast},
+	{"Int", "int", "Int", noCast},
+	{"Uint", "uint", "Uint", noCast},
+	{"Float64Slice", "[]float64", viperUnsupported, noCast},
+	{"Int8", "int8", "Int32", "int8"},
+	{"BytesHex", "[]byte", viperUnsupported, noCast},
+	{"BytesBase64", "[]byte", viperUnsupported, noCast},
+	{"IntSlice", "[]int", "IntSlice", noCast},
+	{"String", "string", "String", noCast},
+	{"StringArray", "[]string", "StringSlice", noCast},
+	{"Int64Slice", "[]int64", viperUnsupported, noCast},
 }
 
 func main() {
@@ -102,8 +104,10 @@ func main() {
 }
 
 type Definition struct {
-	Name string
-	Type string
+	Name      string
+	Type      string
+	ViperName string
+	ViperCast string
 }
 
 func templateFunctions() template.FuncMap {

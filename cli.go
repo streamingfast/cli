@@ -2,90 +2,35 @@ package cli
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"regexp"
+	"runtime/debug"
 	"strings"
 
 	"github.com/lithammer/dedent"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/streamingfast/logging"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
-var zlog, _ = logging.PackageLogger("cli", "github.com/streamingfast/cli")
-
-func CopyFile(inPath, outPath string) {
-	inFile, err := os.Open(inPath)
-	NoError(err, "Unable to open actual file %q", inPath)
-	defer inFile.Close()
-
-	outFile, err := os.Create(outPath)
-	NoError(err, "Unable to open expected file %q", outPath)
-	defer outFile.Close()
-
-	_, err = io.Copy(outFile, inFile)
-	NoError(err, "Unable to copy file %q to %q", inPath, outPath)
-}
-
-func FileExists(path string) bool {
-	stat, err := os.Stat(path)
-	if err != nil {
-		// For this script, we don't care
-		return false
-	}
-
-	return !stat.IsDir()
-}
-
-func DirectoryExists(path string) bool {
-	stat, err := os.Stat(path)
-	if err != nil {
-		// For this script, we don't care
-		return false
-	}
-
-	return stat.IsDir()
-}
-
-func Ensure(condition bool, message string, args ...interface{}) {
-	if !condition {
-		Quit(message, args...)
-	}
-}
-
-func NoError(err error, message string, args ...interface{}) {
-	if err != nil {
-		Quit(message+": "+err.Error(), args...)
-	}
-}
-
-func Quit(message string, args ...interface{}) {
-	fmt.Printf(message+"\n", args...)
-	os.Exit(1)
-}
-
 type CommandOption interface {
-	apply(cmd *cobra.Command)
+	Apply(cmd *cobra.Command)
 }
 
 type CommandOptionFunc func(cmd *cobra.Command)
 
-func (f CommandOptionFunc) apply(cmd *cobra.Command) {
+func (f CommandOptionFunc) Apply(cmd *cobra.Command) {
 	f(cmd)
 }
 
 type Flags func(flags *pflag.FlagSet)
 
-func (f Flags) apply(cmd *cobra.Command) {
+func (f Flags) Apply(cmd *cobra.Command) {
 	f(cmd.Flags())
 }
 
 type PersistentFlags func(flags *pflag.FlagSet)
 
-func (f PersistentFlags) apply(cmd *cobra.Command) {
+func (f PersistentFlags) Apply(cmd *cobra.Command) {
 	f(cmd.PersistentFlags())
 }
 
@@ -133,7 +78,7 @@ func RangeArgs(min int, max int) Args {
 
 type Args cobra.PositionalArgs
 
-func (a Args) apply(cmd *cobra.Command) {
+func (a Args) Apply(cmd *cobra.Command) {
 	cmd.Args = cobra.PositionalArgs(a)
 }
 
@@ -143,7 +88,7 @@ func Description(value string) description {
 
 type description string
 
-func (d description) apply(cmd *cobra.Command) {
+func (d description) Apply(cmd *cobra.Command) {
 	cmd.Long = string(d)
 }
 
@@ -161,13 +106,13 @@ func Command(execute func(cmd *cobra.Command, args []string) error, usage, short
 
 type BeforeAllHook func(cmd *cobra.Command)
 
-func (f BeforeAllHook) apply(cmd *cobra.Command) {
+func (f BeforeAllHook) Apply(cmd *cobra.Command) {
 	f(cmd)
 }
 
 type AfterAllHook func(cmd *cobra.Command)
 
-func (f AfterAllHook) apply(cmd *cobra.Command) {
+func (f AfterAllHook) Apply(cmd *cobra.Command) {
 	f(cmd)
 }
 
@@ -177,7 +122,7 @@ func Execute(f func(cmd *cobra.Command, args []string) error) execute {
 
 type execute func(cmd *cobra.Command, args []string) error
 
-func (e execute) apply(cmd *cobra.Command) {
+func (e execute) Apply(cmd *cobra.Command) {
 	cmd.RunE = (func(cmd *cobra.Command, args []string) error)(e)
 }
 
@@ -189,10 +134,110 @@ func Example(value string) example {
 	return prefixedExample("  ", value)
 }
 
-func ConfigureViper(prefix string) CommandOption {
+// ConfigureViper installs an [AfterAllHook] on the [cobra.Command]
+// that rebind all your flags into viper with a new layout.
+//
+// Persistent flags on a root command can be accessed with `global-<flag>`
+// Persistent flags on a sub-command can be accessed with `<cmd1>-<cmd2>-global-<flag>` where `<cmd1>-<cmd2>` is the command fully qualified path (see below for more details).
+// Standard flags on a command can be accessed with `<cmd1>-<cmd2>-<flag>` where `<cmd1>-<cmd2>` is the command fully qualified path (see below for more details).
+//
+// For the following config:
+//
+//	Root("acme", "CLI sample application",
+//		PersistentFlags(func(flags *pflag.FlagSet) { flags.String("auth", "", "Auth token") }),
+//
+//		Group("tools", "Tools for developers",
+//			PersistentFlags(func(flags *pflag.FlagSet) { flags.Bool("dev", false, "Dev mode") }),
+//
+//			Command(toolsReadE, "read",
+//				"Read command",
+//				Flags(func(flags *pflag.FlagSet) { flags.Bool("skip-errors", false, "Skip read errors") }),
+//			),
+//
+//			Command(toolsWriteE, "write",
+//				"Write command",
+//				Flags(func(flags *pflag.FlagSet) { flags.Bool("skip-errors", false, "Skip write errors") })),
+//		),
+//	)
+//
+// Which renders the follow CLI hierarchy of commands:
+//
+//	acme (--auth <auth>)
+//	 tools (--dev)
+//	   read (--skip-errors)
+//	   write (--skip-errors)
+//
+// You can access the flags using [viper] sub-commands through this hierarchy:
+//
+//	viper.GetString("global-auth")             // acme --auth ""
+//	viper.GetBool("tools-global-dev")          // acme tools --dev
+//	viper.GetString("tools-read-skip-errors")  // acme tools read --skip-errors
+//	viper.GetString("tools-write-skip-errors") // acme tools write --skip-errors
+//
+// And also with environment variables:
+//
+//	viper.GetString("global-auth")             // {PREFIX}_GLOBAL_AUTH=<auth> acme
+//	viper.GetBool("tools-global-dev")          // {PREFIX}_TOOLS_GLOBAL_DEV=<dev> acme acme tools
+//	viper.GetString("tools-read-skip-errors")  // {PREFIX}_TOOLS_READ_SKIP_ERRORS=<skip> acme tools read
+//	viper.GetString("tools-write-skip-errors") // {PREFIX}_TOOLS_WRITE_SKIP_ERRORS=<skip> acme tools write
+//
+// Priority is:
+// Flag definition via CLI overrides everyone else (--<flag>)
+// Environment overrides values provided by config file or defaults ({PREFIX}_{ENV_KEY})
+// Config file (if configure separately) overrides defaults values (if configure separately) (--<flag>)
+// Defaults values defined on the flag definition directly
+func ConfigureViper(envPrefix string) CommandOption {
 	return AfterAllHook(func(cmd *cobra.Command) {
-		ConfigureViperForCommand(cmd, prefix)
+		ConfigureViperForCommand(cmd, envPrefix)
 	})
+}
+
+// ConfigureVersion is an option that configures the `cobra.Command#Version` field
+// automatically based fetching commit revision and date build from Golang available
+// built-in build info.
+//
+// The version formatted output can take different forms depending on the state of
+// 'vcs.revision' availability, 'vcs.time' availability and received 'version':
+//
+//	if vcs.revision == "" && vcs.time == "" return "{version}"
+//	if vcs.revision != "" && vcs.time == "" return "{version} (Commit {vcs.revision[0:7]})"
+//	if vcs.revision == "" && vcs.time == "" return "{version} (Built {vcs.date})"
+//	if vcs.revision != "" && vcs.time != "" return "{version} (Commit {vcs.revision[0:7]}, Built {vcs.date})"
+func ConfigureVersion(version string) CommandOption {
+	return CommandOptionFunc(func(cmd *cobra.Command) {
+		info, ok := debug.ReadBuildInfo()
+		if !ok {
+			panic("we should have been able to retrieve info from 'runtime/debug#ReadBuildInfo'")
+		}
+
+		commit := findSetting("vcs.revision", info.Settings)
+		date := findSetting("vcs.time", info.Settings)
+
+		var labels []string
+		if len(commit) >= 7 {
+			labels = append(labels, fmt.Sprintf("Commit %s", commit[0:7]))
+		}
+
+		if date != "" {
+			labels = append(labels, fmt.Sprintf("Built %s", date))
+		}
+
+		if len(labels) == 0 {
+			cmd.Version = version
+		} else {
+			cmd.Version = fmt.Sprintf("%s (%s)", version, strings.Join(labels, ", "))
+		}
+	})
+}
+
+func findSetting(key string, settings []debug.BuildSetting) (value string) {
+	for _, setting := range settings {
+		if setting.Key == key {
+			return setting.Value
+		}
+	}
+
+	return ""
 }
 
 var isSpaceOnlyRegex = regexp.MustCompile(`^\s*$`)
@@ -228,15 +273,19 @@ func prefixedExample(prefix string, value string) example {
 
 type example string
 
-func (e example) apply(cmd *cobra.Command) {
+func (e example) Apply(cmd *cobra.Command) {
 	cmd.Example = string(e)
 }
 
 func Run(usage, short string, opts ...CommandOption) {
 	cmd := Root(usage, short, opts...)
 
-	cmd.SilenceUsage = false
-	cmd.RunE = silenceUsageOnError(cmd.RunE)
+	visitAllCommands(cmd, func(cmd *cobra.Command) {
+		if cmd.RunE != nil {
+			cmd.RunE = silenceUsageOnError(cmd.RunE)
+			cmd.SilenceUsage = false
+		}
+	})
 
 	err := cmd.Execute()
 
@@ -247,24 +296,10 @@ func Run(usage, short string, opts ...CommandOption) {
 	}
 }
 
-// silenceUsageOnError performs a little trick so that error coming out of the actual executor
-// does not trigger a rendering of the usage. By default, cobra prints the usage on flag/args error
-// as well as on error coming form the executor.
-//
-// That is bad default behavior as in almost all cases, error coming from the executor are not
-// usage error.
-//
-// The trick is to intercept the executor error, and if non-nil, before returning the actual
-// error to cobra, we set `cmd.SilenceUsage = true` if the error is non-nil, which will
-// properly avoid printing the usage.
-func silenceUsageOnError(fn func(cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
-	return func(cmd *cobra.Command, args []string) error {
-		err := fn(cmd, args)
-		if err != nil {
-			cmd.SilenceUsage = true
-		}
-
-		return err
+func visitAllCommands(cmd *cobra.Command, onCmd func(iterated *cobra.Command)) {
+	onCmd(cmd)
+	for _, subCommand := range cmd.Commands() {
+		visitAllCommands(subCommand, onCmd)
 	}
 }
 
@@ -285,7 +320,7 @@ func command(execute func(cmd *cobra.Command, args []string) error, usage, short
 
 	for _, opt := range opts {
 		if _, ok := opt.(BeforeAllHook); ok {
-			opt.apply(command)
+			opt.Apply(command)
 		}
 	}
 
@@ -298,13 +333,13 @@ func command(execute func(cmd *cobra.Command, args []string) error, usage, short
 		case BeforeAllHook, AfterAllHook:
 			continue
 		default:
-			opt.apply(command)
+			opt.Apply(command)
 		}
 	}
 
 	for _, opt := range opts {
 		if _, ok := opt.(AfterAllHook); ok {
-			opt.apply(command)
+			opt.Apply(command)
 		}
 	}
 
@@ -315,35 +350,46 @@ func Dedent(input string) string {
 	return strings.TrimSpace(dedent.Dedent(input))
 }
 
-func AskConfirmation(label string, args ...interface{}) (answeredYes bool, wasAnswered bool) {
-	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
-		wasAnswered = false
-		return
-	}
-
-	prompt := promptui.Prompt{
-		Label:       dedent.Dedent(fmt.Sprintf(label, args...)),
-		Default:     "N",
-		AllowEdit:   true,
-		IsConfirm:   true,
-		HideEntered: true,
-	}
-
-	_, err := prompt.Run()
-	if err != nil {
-		// zlog.Debug("unable to aks user to see diff right now, too bad", zap.Error(err))
-		wasAnswered = false
-		return
-	}
-
-	wasAnswered = true
-	answeredYes = true
-
-	return
-}
-
 // FlagDescription accepts a multi line indented description and transform it into a single line flag description.
 // This method is used to make it easier to define long flag messages.
 func FlagDescription(in string, args ...interface{}) string {
 	return fmt.Sprintf(strings.Join(strings.Split(string(Description(in)), "\n"), " "), args...)
+}
+
+type CommandOnErrorHandler func(err error)
+
+func OnError(onError func(err error)) CommandOption {
+	return AfterAllHook(func(cmd *cobra.Command) {
+		handler := CommandOnErrorHandler(onError)
+
+		visitAllCommands(cmd, func(iterated *cobra.Command) {
+			setCommandAnnotation(iterated, annotationOnError, handler)
+		})
+	})
+}
+
+// silenceUsageOnError performs a little trick so that error coming out of the actual executor
+// does not trigger a rendering of the usage. By default, cobra prints the usage on flag/args error
+// as well as on error coming form the executor (from the `cobra.Command#RunE` field).
+//
+// That is bad default behavior as in almost all cases, error coming from the executor are not
+// usage error.
+//
+// The trick is to intercept the executor error, and if non-nil, before returning the actual
+// error to cobra, we set `cmd.SilenceUsage = true` if the error is non-nil, which will
+// properly avoid printing the usage.
+func silenceUsageOnError(fn func(cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		err := fn(cmd, args)
+		if err != nil {
+			cmd.SilenceUsage = true
+
+			onError, found := getCommandAnnotation(cmd, annotationOnError)
+			if found {
+				onError.(CommandOnErrorHandler)(err)
+			}
+		}
+
+		return err
+	}
 }
