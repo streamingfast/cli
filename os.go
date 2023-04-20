@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 func CopyFile(inPath, outPath string) {
@@ -64,4 +65,11 @@ func UserHomeDirectory() string {
 	NoError(err, "Unable to get user home directory")
 
 	return home
+}
+
+func AbsolutePath(in string) string {
+	out, err := filepath.Abs(in)
+	NoError(err, "Unable to make path %q absolute", in)
+
+	return out
 }
