@@ -13,8 +13,11 @@ require (
 	go.uber.org/zap v1.21.0
 )
 
+require golang.org/x/exp v0.0.0-20230213192124-5e25df0256eb // indirect
+
 require (
 	github.com/blendle/zapdriver v1.3.1 // indirect
+	github.com/bobg/go-generics/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect

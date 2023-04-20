@@ -2,23 +2,19 @@ package cli
 
 import (
 	"fmt"
-	"os"
 )
 
-// OnQuit is a global variable that can be overriden to control how the
-// program should exit when cli module wants to quit.
-//
-// Implementation must enforce an hard-stop on the goroutine by doing
-// either a 'panic' or an 'os.Exit(1)'
+// OnAssertionFailure is a global variable that can be overriden to control how the
+// program should print/process when cli module assertion fail.
 //
 // The message can be "" in which case it should not be printed/logged.
-var OnQuit = func(message string) {
-	if message != "" {
-		fmt.Println(message)
-	}
-
-	os.Exit(1)
-}
+//
+// If your handler does not exit by itself, a call to `cli.Exit(1)` is performed
+// after the handler has executed.
+//
+// If you exit yourself, you should use `cli.Exit(code)` so that exit handlers
+// are called if any present.
+var OnAssertionFailure func(message string)
 
 func Ensure(condition bool, message string, args ...interface{}) {
 	if !condition {
@@ -33,5 +29,11 @@ func NoError(err error, message string, args ...interface{}) {
 }
 
 func Quit(message string, args ...interface{}) {
-	OnQuit(fmt.Sprintf(message, args...))
+	if OnAssertionFailure != nil {
+		OnAssertionFailure(fmt.Sprintf(message, args...))
+	} else {
+		fmt.Printf(message+"\n", args...)
+	}
+
+	Exit(1)
 }

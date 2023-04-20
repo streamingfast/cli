@@ -36,7 +36,7 @@ func SetupSignalHandler(gracefulShutdownDelay time.Duration, logger *zap.Logger)
 					logger.Info("received termination signal 3 times, forcing kill")
 					logger.Sync()
 
-					os.Exit(1)
+					Exit(1)
 				}
 
 				if !hasBeenSignaled.Load() {

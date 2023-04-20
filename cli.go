@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -10,6 +11,7 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.uber.org/zap"
 )
 
 type CommandOption interface {
@@ -292,7 +294,7 @@ func Run(usage, short string, opts ...CommandOption) {
 	// FIXME: What is the right behavior on error from here?
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		Exit(1)
 	}
 }
 
@@ -356,15 +358,51 @@ func FlagDescription(in string, args ...interface{}) string {
 	return fmt.Sprintf(strings.Join(strings.Split(string(Description(in)), "\n"), " "), args...)
 }
 
-type CommandOnErrorHandler func(err error)
+type OnCommandErrorHandler func(err error)
 
-func OnError(onError func(err error)) CommandOption {
+// OnCommandError intercepts error returned when running your `cobra.Command.RunE`
+// handler and enable you to do something with it, like logging it. Once your handler
+// has finish running, the process will exit with code 1.
+//
+// You are free to exit yourself in your own handler, for example if some error
+// should still exit with code 0.
+func OnCommandError(onError func(err error)) CommandOption {
 	return AfterAllHook(func(cmd *cobra.Command) {
-		handler := CommandOnErrorHandler(onError)
+		handler := OnCommandErrorHandler(func(cause error) {
+			onError(cause)
+			Exit(1)
+		})
 
 		visitAllCommands(cmd, func(iterated *cobra.Command) {
 			setCommandAnnotation(iterated, annotationOnError, handler)
 		})
+
+		// We keep it inside because this is called very late and others could
+		// have configured the OnAssertionFailure.
+		if OnAssertionFailure == nil {
+			OnAssertionFailure = func(message string) { handler(errors.New(message)) }
+		}
+	})
+}
+
+// OnCommandErrorLogAndExit logs the error to the logger, sync the logger and
+// exit with 1. It also intercepts assertion error produced by this library through
+// `cli.Ensure` and `cli.NoError`.
+func OnCommandErrorLogAndExit(logger *zap.Logger) CommandOption {
+	if OnAssertionFailure == nil {
+		OnAssertionFailure = func(message string) {
+			if message != "" {
+				zlog.Error(message)
+				zlog.Sync()
+			}
+		}
+	}
+
+	return OnCommandError(func(err error) {
+		if err != nil {
+			logger.Error(err.Error())
+		}
+		logger.Sync()
 	})
 }
 
@@ -386,7 +424,7 @@ func silenceUsageOnError(fn func(cmd *cobra.Command, args []string) error) func(
 
 			onError, found := getCommandAnnotation(cmd, annotationOnError)
 			if found {
-				onError.(CommandOnErrorHandler)(err)
+				onError.(OnCommandErrorHandler)(err)
 			}
 		}
 

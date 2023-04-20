@@ -84,7 +84,7 @@ func MaybePromptSelect[T any](label string, items []string, transformer PromptTr
 	if err != nil {
 		if errors.Is(err, promptui.ErrInterrupt) {
 			// We received Ctrl-C, users wants to abort, nothing else to do, quit immediately
-			OnQuit("")
+			Exit(1)
 		}
 
 		var empty T
@@ -204,7 +204,7 @@ func PromptRaw(label string, opts ...PromptOption) (answer string, err error) {
 	choice, err := prompt.Run()
 	if err != nil {
 		if errors.Is(err, promptui.ErrInterrupt) {
-			OnQuit("")
+			Exit(1)
 		}
 
 		if prompt.IsConfirm && errors.Is(err, promptui.ErrAbort) {
