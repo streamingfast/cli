@@ -8,6 +8,9 @@ import (
 	"github.com/streamingfast/logging"
 )
 
+// Injected at build time
+var version = ""
+
 var zlog, tracer = logging.RootLogger("project", "github.com/acme/project")
 
 func main() {
@@ -16,7 +19,9 @@ func main() {
 	Run(
 		"flat <arg> [<optional_arg]",
 		"A flat command short description",
+
 		Execute(run),
+
 		MinimumNArgs(1),
 		Description(`
 			Description of the command, automatically de-indented by using first line identation,
@@ -25,15 +30,19 @@ func main() {
 		Example(`
 			flat <value>
 		`),
+
+		ConfigureVersion(version),
+		ConfigureViper("PROJECT"),
+		OnCommandErrorLogAndExit(zlog),
 	)
 }
 
 func run(cmd *cobra.Command, args []string) error {
 	zlog.Info("Executed")
 
-	zlog.Debug("Will be displayed if DEBUG=true, DEBUG=* or DEBUG=flat (specific logger) is specified (or with TRACE env)")
+	zlog.Debug("Will be displayed if DLOG=debug (equivalent to DLOG='.*=debug')")
 	if tracer.Enabled() {
-		zlog.Debug("Will be displayed if TRACE=true, TRACE=* or TRACE=flat (specific logger) is specified")
+		zlog.Debug("Will be displayed if DLOG=trace (equivalent to DLOG='.*=trace')")
 	}
 
 	return fmt.Errorf("testing")

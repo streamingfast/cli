@@ -10,6 +10,9 @@ import (
 	"github.com/streamingfast/logging"
 )
 
+// Injected at build time
+var version = ""
+
 var zlog, tracer = logging.RootLogger("project", "github.com/acme/project")
 
 func main() {
@@ -18,6 +21,10 @@ func main() {
 	Run(
 		"runner",
 		"Some random command runner with 2 sub-commands",
+
+		ConfigureVersion(version),
+		ConfigureViper("PROJECT"),
+
 		Group(
 			"generate",
 			"Quick group summary, without a description",
@@ -29,6 +36,7 @@ func main() {
 				}),
 			),
 		),
+
 		Command(compareE,
 			"compare <input_file>",
 			"Quick command summary, with a description, the actual usage above is descriptive, you must handle the arguments manually",
@@ -42,6 +50,8 @@ func main() {
 			`),
 			ExactArgs(2),
 		),
+
+		OnCommandErrorLogAndExit(zlog),
 	)
 }
 
