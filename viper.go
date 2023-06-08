@@ -41,7 +41,7 @@ func recurseCommands(root *cobra.Command, segments []string) {
 		rebindFlag("persistent", f, append(persistentSegments, f.Name))
 	})
 
-	root.Flags().VisitAll(func(f *pflag.Flag) {
+	root.LocalNonPersistentFlags().VisitAll(func(f *pflag.Flag) {
 		rebindFlag("local", f, append(segments, f.Name))
 	})
 
