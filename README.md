@@ -59,7 +59,7 @@ func main() {
 			"compare <input_file>",
 			"Quick command summary, with a description, the actual usage above is descriptive, you must handle the arguments manually",
 			Description(`
-				Description of the command, automatically de-indented by using first line identation,
+				Description of the command, automatically de-indented by using first line indentation,
 				use 'go run ./example/nested compare --help' to see it in action!
 			`),
 			ExamplePrefixed("runner", `
@@ -74,17 +74,14 @@ func main() {
 }
 
 func generateImgE(cmd *cobra.Command, args []string) error {
-	_, err := os.Getwd()
-	NoError(err, "unable to get working directory")
-
-	fmt.Println("Generating something")
-	return nil
+	fmt.Println("Generating something from", cli.WorkingDirectory())
+	return errors.New("showing on error look like (if you used `go run`, the 'exit status 1' is printed by it, compiled binary will not print it)")
 }
 
 func compareE(cmd *cobra.Command, args []string) error {
-	shouldContinue, wasAnswered := AskConfirmation(`Do you want to continue?`)
+	shouldContinue, wasAnswered := cli.PromptConfirm(`Do you want to continue?`)
 	if wasAnswered && shouldContinue {
-
+		fmt.Println("Showing diff between files")
 	} else {
 		fmt.Println("Not showing diff between files, run the following command to see it manually:")
 	}
@@ -93,73 +90,14 @@ func compareE(cmd *cobra.Command, args []string) error {
 }
 ```
 
-<details>
-<summary><b>Comparison vs plain &cobra.Command construction</b></summary>
+### Comparison between `cli.Command` and `&cobra.Command` manual construction
 
-<table>
-<tr><th>Before</th><th>After</th></tr>
-<tr>
-<td>
-<pre>
-var protogenCmd = &cobra.Command{
-	Use:   "protogen [<manifest>]",
-	Short: "Generate Rust bindings from a package",
-	Long: cli.Dedent(`
-		Generate Rust bindings from a package. The manifest is optional as it will try to find a file named
-		'substreams.yaml' in current working directory if nothing entered. You may enter a directory that contains a 'substreams.yaml'
-		file in place of '<manifest_file>', or a link to a remote .spkg file, using urls gs://, http(s)://, ipfs://, etc.'.
-	`),
-	RunE:         runProtogen,
-	Args:         cobra.RangeArgs(0, 1),
-	SilenceUsage: true,
-}
+The best way to see the difference is by opening the before/after in your browser:
 
-func init() {
-	rootCmd.AddCommand(protogenCmd)
+- [./before/main.go](./before/main.go)
+- [./after/main.go](./after/main.go)
 
-	flags := protogenCmd.Flags()
-	flags.StringP("output-path", "o", "src/pb", cli.FlagDescription(`
-		Directory to output generated .rs files, if the received <package> argument is a local Substreams manifest file
-		(e.g. a local file ending with .yaml), the output path will be made relative to it
-	`))
-	flags.StringArrayP("exclude-paths", "x", []string{}, "Exclude specific files or directories, for example \"proto/a/a.proto\" or \"proto/a\"")
-	flags.Bool("generate-mod-rs", true, cli.FlagDescription(`
-		Generate the protobuf 'mod.rs' file alongside the rust bindings. Include '--generate-mod-rs=false' If you wish to disable this generation.
-		If there is a present 'buf.gen.yaml', consult https://github.com/neoeinstein/protoc-gen-prost/blob/main/protoc-gen-prost-crate/README.md to add 'mod.rs' generation functionality.
-	`))
-	flags.Bool("show-generated-buf-gen", false, "Whether to show the generated buf.gen.yaml file or not")
-}
-</pre>
-</td>
-<td>
-<pre>
-var protogenCmd = Command(
-	runProtogen,
-	"protogen [<manifest>]",
-	"Generate Rust bindings from a package",
-	Description(`
-		Generate Rust bindings from a package. The manifest is optional as it will try to find a file named
-		'substreams.yaml' in current working directory if nothing entered. You may enter a directory that contains a 'substreams.yaml'
-		file in place of '<manifest_file>', or a link to a remote .spkg file, using urls gs://, http(s)://, ipfs://, etc.'.
-	`),
-	RangeArgs(0, 1),
-	Flags(func(flags *pflag.FlagSet) {
-		flags.StringP("output-path", "o", "src/pb", FlagDescription(`
-			Directory to output generated .rs files, if the received <package> argument is a local Substreams manifest file
-			(e.g. a local file ending with .yaml), the output path will be made relative to it
-		`))
-		flags.StringArrayP("exclude-paths", "x", []string{}, "Exclude specific files or directories, for example \"proto/a/a.proto\" or \"proto/a\"")
-		flags.Bool("generate-mod-rs", true, FlagDescription(`
-			Generate the protobuf 'mod.rs' file alongside the rust bindings. Include '--generate-mod-rs=false' If you wish to disable this generation.
-			If there is a present 'buf.gen.yaml', consult https://github.com/neoeinstein/protoc-gen-prost/blob/main/protoc-gen-prost-crate/README.md to add 'mod.rs' generation functionality.
-		`))
-		flags.Bool("show-generated-buf-gen", false, "Whether to show the generated buf.gen.yaml file or not")
-	}),
-)
-</pre>
-</td>
-</table>
-</details>
+And enjoy the feeling.
 
 ## Contributing
 

@@ -38,7 +38,7 @@ func main() {
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	zlog.Info("Executed")
+	zlog.Info("Executing")
 
 	zlog.Debug("Will be displayed if DLOG=debug (equivalent to DLOG='.*=debug')")
 	if tracer.Enabled() {

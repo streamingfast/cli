@@ -1,12 +1,8 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/streamingfast/cli"
 	. "github.com/streamingfast/cli"
 	"github.com/streamingfast/logging"
 )
@@ -14,7 +10,7 @@ import (
 // Injected at build time
 var version = ""
 
-var zlog, tracer = logging.RootLogger("project", "github.com/acme/project")
+var zlog, _ = logging.RootLogger("project", "github.com/acme/project")
 
 func main() {
 	logging.InstantiateLoggers()
@@ -42,7 +38,7 @@ func main() {
 			"compare <input_file>",
 			"Quick command summary, with a description, the actual usage above is descriptive, you must handle the arguments manually",
 			Description(`
-				Description of the command, automatically de-indented by using first line indentation,
+				Description of the command, automatically de-indented by using first line identation,
 				use 'go run ./example/nested compare --help' to see it in action!
 			`),
 			ExamplePrefixed("runner", `
@@ -56,24 +52,5 @@ func main() {
 	)
 }
 
-func generateImgE(cmd *cobra.Command, args []string) error {
-	zlog.Info("Executing")
-
-	zlog.Debug("Will be displayed if DLOG=debug (equivalent to DLOG='.*=debug')")
-	if tracer.Enabled() {
-		zlog.Debug("Will be displayed if DLOG=trace (equivalent to DLOG='.*=trace')")
-	}
-
-	return errors.New("showing on error look like (if you used `go run`, the 'exit status 1' is printed by it, compiled binary will not print it)")
-}
-
-func compareE(cmd *cobra.Command, args []string) error {
-	shouldContinue, wasAnswered := cli.PromptConfirm(`Do you want to continue?`)
-	if wasAnswered && shouldContinue {
-		fmt.Println("Showing diff between files")
-	} else {
-		fmt.Println("Not showing diff between files, run the following command to see it manually:")
-	}
-
-	return nil
-}
+func generateImgE(*cobra.Command, []string) error { return nil }
+func compareE(*cobra.Command, []string) error     { return nil }
