@@ -94,10 +94,12 @@ func compareE(cmd *cobra.Command, args []string) error {
 
 The best way to see the difference is by opening the before/after in your browser:
 
-- [./before/main.go](./before/main.go)
-- [./after/main.go](./after/main.go)
+- [Before (`&cobra.Command` construction)](./example/compare/before/main.go)
+- [After (`cli.Command` construction)](./example/compare/after/main.go)
 
 And enjoy the feeling.
+
+> **Note** The `cli` library is a wrapper around `cobra.Command`, so at the end you still deal with `*cobra.Command`.
 
 ## Contributing
 
