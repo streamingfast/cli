@@ -13,17 +13,6 @@ The folder [./example](./example) contains example usage of the library. You can
  * Flat - `go run ./flat`
  * Nested - `go run ./nested`
 
-### Public Helpers
-
-| Method| Description |
-|-|-|
-| `cli.NoError(err, "file not found %q", fileName)` | Exit the process with exit code 1 and prints `fmt.Printf("file not found %q: %w\n", fileName, err)` if `err != nil` |
-| `cli.Ensure(x == 0, "x point should be 0, got %d", x)` | Exit the process with exit code 1 and prints `fmt.Printf("x point should be 0, got %d\n", x)` if condition received is `false` |
-| `cli.Quit("current date %d is too far away", time.Now())` | Exit the process with exit code 1 and prints `fmt.Printf("x point should be 0, got %d\n", x)` |
-| `cli.FileExists("./some/file.png")` | Returns `true` if the file received in argument exists, `false` otherwise |
-| `cli.CopyFile("current date %d is too far away", time.Now())` | Exit the process with exit code 1 and prints `fmt.Printf("x point should be 0, got %d\n", x)` |
-|-|-|
-
 ### Sample Boilerplate (copy/paste ready)
 
 ```golang
@@ -33,21 +22,39 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	. "github.com/streamingfast/cli"
 	"github.com/streamingfast/logging"
-	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 )
 
-var zlog = zap.NewNop()
-var tracer = logging.ApplicationLogger("nested", "github.com/acme/nested", &zlog)
+// Injected at build time
+var version = ""
+
+var zlog, tracer = logging.RootLogger("project", "github.com/acme/project")
 
 func main() {
-	Run("runner", "Some random command runner with 2 sub-commands",
-		Command(generateE,
+	logging.InstantiateLoggers()
+
+	Run(
+		"runner",
+		"Some random command runner with 2 sub-commands",
+
+		ConfigureVersion(version),
+		ConfigureViper("PROJECT"),
+
+		Group(
 			"generate",
-			"Quick command summary, without a description",
+			"Quick group summary, without a description",
+			Command(generateImgE,
+				"image",
+				"Quick command summary, without a description",
+				Flags(func(flags *pflag.FlagSet) {
+					flags.String("version", "", "A flag description")
+				}),
+			),
 		),
+
 		Command(compareE,
 			"compare <input_file>",
 			"Quick command summary, with a description, the actual usage above is descriptive, you must handle the arguments manually",
@@ -59,11 +66,14 @@ func main() {
 				compare relative_file.json
 				compare /absolute/file.json
 			`),
+			ExactArgs(2),
 		),
+
+		OnCommandErrorLogAndExit(zlog),
 	)
 }
 
-func generateE(cmd *cobra.Command, args []string) error {
+func generateImgE(cmd *cobra.Command, args []string) error {
 	_, err := os.Getwd()
 	NoError(err, "unable to get working directory")
 
@@ -82,6 +92,74 @@ func compareE(cmd *cobra.Command, args []string) error {
 	return nil
 }
 ```
+
+<details>
+<summary><b>Comparison vs plain &cobra.Command construction</b></summary>
+
+<table>
+<tr><th>Before</th><th>After</th></tr>
+<tr>
+<td>
+<pre>
+var protogenCmd = &cobra.Command{
+	Use:   "protogen [<manifest>]",
+	Short: "Generate Rust bindings from a package",
+	Long: cli.Dedent(`
+		Generate Rust bindings from a package. The manifest is optional as it will try to find a file named
+		'substreams.yaml' in current working directory if nothing entered. You may enter a directory that contains a 'substreams.yaml'
+		file in place of '<manifest_file>', or a link to a remote .spkg file, using urls gs://, http(s)://, ipfs://, etc.'.
+	`),
+	RunE:         runProtogen,
+	Args:         cobra.RangeArgs(0, 1),
+	SilenceUsage: true,
+}
+
+func init() {
+	rootCmd.AddCommand(protogenCmd)
+
+	flags := protogenCmd.Flags()
+	flags.StringP("output-path", "o", "src/pb", cli.FlagDescription(`
+		Directory to output generated .rs files, if the received <package> argument is a local Substreams manifest file
+		(e.g. a local file ending with .yaml), the output path will be made relative to it
+	`))
+	flags.StringArrayP("exclude-paths", "x", []string{}, "Exclude specific files or directories, for example \"proto/a/a.proto\" or \"proto/a\"")
+	flags.Bool("generate-mod-rs", true, cli.FlagDescription(`
+		Generate the protobuf 'mod.rs' file alongside the rust bindings. Include '--generate-mod-rs=false' If you wish to disable this generation.
+		If there is a present 'buf.gen.yaml', consult https://github.com/neoeinstein/protoc-gen-prost/blob/main/protoc-gen-prost-crate/README.md to add 'mod.rs' generation functionality.
+	`))
+	flags.Bool("show-generated-buf-gen", false, "Whether to show the generated buf.gen.yaml file or not")
+}
+</pre>
+</td>
+<td>
+<pre>
+var protogenCmd = Command(
+	runProtogen,
+	"protogen [<manifest>]",
+	"Generate Rust bindings from a package",
+	Description(`
+		Generate Rust bindings from a package. The manifest is optional as it will try to find a file named
+		'substreams.yaml' in current working directory if nothing entered. You may enter a directory that contains a 'substreams.yaml'
+		file in place of '<manifest_file>', or a link to a remote .spkg file, using urls gs://, http(s)://, ipfs://, etc.'.
+	`),
+	RangeArgs(0, 1),
+	Flags(func(flags *pflag.FlagSet) {
+		flags.StringP("output-path", "o", "src/pb", FlagDescription(`
+			Directory to output generated .rs files, if the received <package> argument is a local Substreams manifest file
+			(e.g. a local file ending with .yaml), the output path will be made relative to it
+		`))
+		flags.StringArrayP("exclude-paths", "x", []string{}, "Exclude specific files or directories, for example \"proto/a/a.proto\" or \"proto/a\"")
+		flags.Bool("generate-mod-rs", true, FlagDescription(`
+			Generate the protobuf 'mod.rs' file alongside the rust bindings. Include '--generate-mod-rs=false' If you wish to disable this generation.
+			If there is a present 'buf.gen.yaml', consult https://github.com/neoeinstein/protoc-gen-prost/blob/main/protoc-gen-prost-crate/README.md to add 'mod.rs' generation functionality.
+		`))
+		flags.Bool("show-generated-buf-gen", false, "Whether to show the generated buf.gen.yaml file or not")
+	}),
+)
+</pre>
+</td>
+</table>
+</details>
 
 ## Contributing
 
