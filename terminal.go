@@ -125,6 +125,16 @@ type PromptOption interface {
 	Apply(opts *promptOptions)
 }
 
+type promptIsDefaultValue string
+
+func (o promptIsDefaultValue) Apply(opts *promptOptions) {
+	opts.defaultValue = string(o)
+}
+
+func WithPromptDefaultValue(in string) PromptOption {
+	return promptIsDefaultValue(in)
+}
+
 type promptIsConfirmOption bool
 
 func (o promptIsConfirmOption) Apply(opts *promptOptions) {
@@ -166,6 +176,7 @@ type promptOptions struct {
 	validate        promptui.ValidateFunc
 	isConfirm       bool
 	promptTemplates *promptui.PromptTemplates
+	defaultValue    string
 }
 
 func PromptRaw(label string, opts ...PromptOption) (answer string, err error) {
@@ -199,6 +210,11 @@ func PromptRaw(label string, opts ...PromptOption) (answer string, err error) {
 
 	if prompt.Validate == nil && options.isConfirm {
 		prompt.Validate = PrompValidateYesNo
+	}
+
+	if options.defaultValue != "" {
+		prompt.Default = options.defaultValue
+		prompt.AllowEdit = true
 	}
 
 	choice, err := prompt.Run()
