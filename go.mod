@@ -9,6 +9,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.15.0
 	github.com/streamingfast/logging v0.0.0-20230608130331-f22c91403091
+	github.com/streamingfast/shutter v1.5.0
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/zap v1.21.0
 )
