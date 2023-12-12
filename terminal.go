@@ -13,7 +13,14 @@ import (
 	"golang.org/x/term"
 )
 
-// Prompt is just like [Prompt] but accepts a transformer that transform the `string` into the generic type T.
+// Prompt will ask the following "label" question to the user and will transform the received `string`
+// into the generic type T via the `transformer` function. There is a few predefined transformer for
+// common types like `PromptTypeString`, `PromptTypeInt`, `PromptTypeInt64`, `PromptTypeUint64`,
+// `PromptTypeYesNo`. Using the right transformer will automatically infers the right T genric type.
+//
+//	userID := cli.Prompt("Please enter the user ID to issue the token to", cli.PromptTypeString)
+//
+// In this case, the `userID` variable will be of type `string`.
 func Prompt[T any](label string, transformer PromptTransformer[T], opts ...PromptOption) T {
 	out, err := MaybePrompt(label, transformer, opts...)
 	if err != nil {
