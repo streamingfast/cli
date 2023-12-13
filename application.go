@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/streamingfast/shutter"
+	"go.uber.org/atomic"
 	"go.uber.org/zap"
 )
 
@@ -18,6 +19,8 @@ import (
 type Application struct {
 	appCtx  context.Context
 	shutter *shutter.Shutter
+
+	isSignaled *atomic.Bool
 }
 
 func NewApplication(ctx context.Context) *Application {
@@ -29,9 +32,17 @@ func NewApplication(ctx context.Context) *Application {
 	})
 
 	return &Application{
-		appCtx:  appCtx,
-		shutter: shutter,
+		appCtx:     appCtx,
+		shutter:    shutter,
+		isSignaled: atomic.NewBool(false),
 	}
+}
+
+// IsReady returns true if the application is ready to be used. When the Ctrl-C signal is received,
+// the app is immediately marked as not ready and the `WaitForTermination` call will wait for the
+// unreadyPeriodDelay to expire before terminating the application.
+func (a *Application) IsReady() bool {
+	return !a.isSignaled.Load()
 }
 
 func (a *Application) Context() context.Context {
@@ -136,6 +147,10 @@ func (a *Application) WaitForTermination(logger *zap.Logger, unreadyPeriodDelay,
 	}()
 
 	signalHandler, isSignaled, _ := SetupSignalHandler(unreadyPeriodDelay, logger)
+
+	// Wire the signal handler to the application
+	a.isSignaled = isSignaled
+
 	select {
 	case <-signalHandler:
 		go a.shutter.Shutdown(nil)
