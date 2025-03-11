@@ -436,3 +436,13 @@ func silenceUsageOnError(fn func(cmd *cobra.Command, args []string) error) func(
 		return err
 	}
 }
+
+// ToCobraCmd converts a [CommandOption] to a [cobra.Command] suitable to be added to another
+// "parent" command using the `AddCommand` method.
+func ToCobraCmd(cliCmd CommandOption) *cobra.Command {
+	parent := &cobra.Command{}
+	cliCmd.Apply(parent)
+	child := parent.Commands()
+
+	return child[0]
+}
