@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/streamingfast/shutter"
@@ -108,27 +109,63 @@ func (a *Application) SuperviseAndStart(child Shutter) {
 
 	switch v := child.(type) {
 	case Runnable:
-		go v.Run()
+		go func() {
+			v.Run()
+			child.Shutdown(nil)
+		}()
 	case RunnableContext:
-		go v.Run(a.appCtx)
+		go func() {
+			v.Run(a.appCtx)
+			child.Shutdown(nil)
+		}()
 	case RunnableError:
 		go func() {
 			err := v.Run()
-			if err != nil {
-				child.Shutdown(err)
-			}
+			child.Shutdown(err)
 		}()
 	case RunnableContextError:
 		go func() {
 			err := v.Run(a.appCtx)
-			if err != nil {
-				child.Shutdown(err)
-			}
+			child.Shutdown(err)
 		}()
 
 	default:
 		panic(fmt.Errorf("unsupported child type %T, must implement one of cli.Runnable, cli.RunnableContext, cli.RunnableError or cli.RunnableContextError", child))
 	}
+}
+
+// BlockUntilTerminated waits for the application to terminate. This is a blocking call that
+// will wait for the application to be terminated. After receiving the initial terminating signal, if
+// gracefulShutdownDelay is not 0, the terminated signal must happen within the gracefulShutdownDelay
+// otherwise the call will unblock.
+func (a *Application) BlockUntilTerminated(logger *zap.Logger, gracefulShutdownDelay time.Duration) error {
+	<-a.shutter.Terminating()
+	logger.Info("application terminating", zap.Bool("with_error", a.shutter.Err() != nil))
+
+	maxWaitDelay := gracefulShutdownDelay
+	if maxWaitDelay == 0 {
+		maxWaitDelay = time.Duration(math.MaxInt64)
+	}
+
+	logger.Info("waiting for application termination")
+	select {
+	case <-a.shutter.Terminated():
+	case <-time.After(maxWaitDelay):
+		err := fmt.Errorf("application did not terminate within graceful period of %s", maxWaitDelay)
+
+		if appErr := a.shutter.Err(); appErr != nil {
+			return fmt.Errorf("%w: %w", err, appErr)
+		}
+
+		return err
+	}
+
+	if err := a.shutter.Err(); err != nil {
+		return fmt.Errorf("application terminated with error: %w", err)
+	}
+
+	logger.Info("application terminated gracefully")
+	return nil
 }
 
 // WaitForTermination waits for the application to terminate. This first setup the signal handler and
