@@ -32,7 +32,7 @@ func recurseCommands(root *cobra.Command, segments []string) {
 		zlog.Debug("re-binding flags", zap.String("cmd", root.Name()), zap.Strings("segments", segments))
 
 		defer func() {
-			zlog.Debug("reboung flags terminated", zap.String("cmd", root.Name()))
+			zlog.Debug("re-binding flags terminated", zap.String("cmd", root.Name()))
 		}()
 	}
 
@@ -59,7 +59,9 @@ func rebindFlag(tag string, f *pflag.Flag, segments []string) {
 	viper.BindPFlag(newVarDash, f)
 	viper.BindPFlag(newVarDot, f)
 
-	zlog.Debug("binding "+tag+" flag", zap.String("actual", f.Name), zap.String("rebind_to", newVarDot+" (dash accepted)"))
+	if tracer.Enabled() {
+		zlog.Debug("binding "+tag+" flag", zap.String("actual", f.Name), zap.String("rebind_to", newVarDot+" (dash accepted)"))
+	}
 }
 
 func addAnnotation(flag *pflag.Flag, key string, value string) {
