@@ -1,8 +1,8 @@
 module github.com/streamingfast/cli
 
-go 1.22
+go 1.24
 
-toolchain go1.22.0
+toolchain go1.24.2
 
 require (
 	github.com/bobg/go-generics/v3 v3.4.0
