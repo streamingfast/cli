@@ -246,6 +246,12 @@ func PromptRaw(label string, opts ...PromptOption) (answer string, err error) {
 //
 //	PromptT("Input your age", opts, PromptTypeUint64)
 var (
+	PromptTypeOptionalString = func(x string) (*string, error) {
+		if x == "" {
+			return nil, nil
+		}
+		return &x, nil
+	}
 	PromptTypeString = func(x string) (string, error) { return x, nil }
 	PromptTypeInt    = strconv.Atoi
 	PromptTypeInt64  = func(x string) (int64, error) { return strconv.ParseInt(x, 0, 64) }
