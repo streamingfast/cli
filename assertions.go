@@ -16,19 +16,28 @@ import (
 // are called if any present.
 var OnAssertionFailure func(message string)
 
-func Ensure(condition bool, message string, args ...interface{}) {
+// Ensure checks the condition and if it is false, it will call `cli.Quit` with the message
+// effectively exiting the program with code 1.
+func Ensure(condition bool, message string, args ...any) {
 	if !condition {
 		Quit(message, args...)
 	}
 }
 
-func NoError(err error, message string, args ...interface{}) {
+// NoError checks if the error is nil, and if it is not, it will call `cli.Quit` with the message
+// effectively exiting the program with code 1.
+func NoError(err error, message string, args ...any) {
 	if err != nil {
 		Quit(message+": "+err.Error(), args...)
 	}
 }
 
-func Quit(message string, args ...interface{}) {
+// Quit prints the message and exits the program with code 1.
+// If OnAssertionFailure is set, it will be called with the message instead of printing it
+// to stdout.
+//
+// If you want to exit with a different code, use `cli.Exit(code)` instead.
+func Quit(message string, args ...any) {
 	if OnAssertionFailure != nil {
 		OnAssertionFailure(fmt.Sprintf(message, args...))
 	} else {

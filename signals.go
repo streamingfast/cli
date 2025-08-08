@@ -54,7 +54,7 @@ func SetupSignalHandler(unreadyPeriodDelay time.Duration, logger *zap.Logger) (r
 				seen++
 
 				if seen > 3 {
-					logger.Info("received termination signal 3 times, forcing kill")
+					logger.Info("received termination signal 3 times, forcing kill", zap.String("signal", signalToName(s)))
 					logger.Sync()
 
 					Exit(1)
@@ -64,15 +64,15 @@ func SetupSignalHandler(unreadyPeriodDelay time.Duration, logger *zap.Logger) (r
 					hasBeenSignaled.Store(true)
 
 					if unreadyPeriodDelay <= 0 {
-						logger.Info("received termination signal and no unready period delay configured, exiting now")
+						logger.Info("received termination signal and no unready period delay configured, exiting now", zap.String("signal", signalToName(s)))
 						waitedFullDelay.Store(true)
 						outgoingSignals <- s
 						break
 					}
 
 					logger.Info(
-						fmt.Sprintf("received termination signal, waiting for unready period delay %s before notifying listner (Ctrl+C again 3 times to force kill!)", unreadyPeriodDelay),
-						zap.Stringer("signal", s),
+						fmt.Sprintf("received termination signal, waiting for unready period delay %s before notifying listener (Ctrl+C again 3 times to force kill!)", unreadyPeriodDelay),
+						zap.String("signal", signalToName(s)),
 					)
 
 					go time.AfterFunc(unreadyPeriodDelay, func() {
@@ -82,11 +82,26 @@ func SetupSignalHandler(unreadyPeriodDelay time.Duration, logger *zap.Logger) (r
 					break
 				}
 
-				logger.Info("received termination signal twice, shutting down now", zap.Stringer("signal", s))
+				logger.Info("received termination signal twice, shutting down now", zap.String("signal", signalToName(s)))
 				outgoingSignals <- s
 			}
 		}
 	}()
 
 	return outgoingSignals, hasBeenSignaled, waitedFullDelay
+}
+
+func signalToName(s os.Signal) string {
+	name := func() string {
+		switch s {
+		case syscall.SIGINT:
+			return "SIGINT"
+		case syscall.SIGTERM:
+			return "SIGTERM"
+		default:
+			return "OTHER"
+		}
+	}
+
+	return fmt.Sprintf("%s (%s)", name(), s)
 }

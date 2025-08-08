@@ -104,33 +104,75 @@ func (a *Application) Supervise(child Shutter) {
 // The child is started in a goroutine and tied to the application lifecycle because we also
 // called [Supervise]. Later the call to `WaitForTermination` will wait for the application to
 // terminate which will also terminates and wait for all child.
+//
+// People can use either [SuperviseAndStart] or [SuperviseAndStartUsing] and passing `child.Run`
+// explicitly depending on their preference, see [SuperviseAndStartUsing] for details.
 func (a *Application) SuperviseAndStart(child Shutter) {
 	a.Supervise(child)
 
 	switch v := child.(type) {
 	case Runnable:
-		go func() {
-			v.Run()
-			child.Shutdown(nil)
-		}()
+		a.SuperviseAndStartUsing(child, v.Run)
 	case RunnableContext:
+		a.SuperviseAndStartUsing(child, v.Run)
+	case RunnableError:
+		a.SuperviseAndStartUsing(child, v.Run)
+	case RunnableContextError:
+		a.SuperviseAndStartUsing(child, v.Run)
+
+	default:
+		panic(fmt.Errorf("unsupported child type %T, must implement one of cli.Runnable, cli.RunnableContext, cli.RunnableError or cli.RunnableContextError", child))
+	}
+}
+
+// SuperviseAndStartUsing calls [Supervise] and then starts the child in a goroutine using the
+// provided runner function. The runner function must be one of the following types:
+//
+//	func()
+//	func(ctx context.Context)
+//	func() error
+//	func(ctx context.Context) error
+//
+// This can be used to make it more explicit what is the runner function that is started, making
+// the `Run` method apparent at call site. Compare:
+//
+//	a.SuperviseAndStart(child)
+//
+// with
+//
+//	a.SuperviseAndStartUsing(child, child.Run)
+//
+// In the second case, you can "<key>-click" to go to the `Run` method of the child
+// directly, while in the first case, you have to search, the linking is not as direct.
+//
+// People can use either [SuperviseAndStart] or [SuperviseAndStartUsing] depending on their preference.
+func (a *Application) SuperviseAndStartUsing(child Shutter, runner any) {
+	a.Supervise(child)
+
+	switch v := runner.(type) {
+	case func():
 		go func() {
-			v.Run(a.appCtx)
+			v()
 			child.Shutdown(nil)
 		}()
-	case RunnableError:
+	case func(ctx context.Context):
 		go func() {
-			err := v.Run()
+			v(a.appCtx)
+			child.Shutdown(nil)
+		}()
+	case func() error:
+		go func() {
+			err := v()
 			child.Shutdown(err)
 		}()
-	case RunnableContextError:
+	case func(ctx context.Context) error:
 		go func() {
-			err := v.Run(a.appCtx)
+			err := v(a.appCtx)
 			child.Shutdown(err)
 		}()
 
 	default:
-		panic(fmt.Errorf("unsupported child type %T, must implement one of cli.Runnable, cli.RunnableContext, cli.RunnableError or cli.RunnableContextError", child))
+		panic(fmt.Errorf("unsupported child type %T, must pass a function  cli.Runnable, cli.RunnableContext, cli.RunnableError or cli.RunnableContextError", child))
 	}
 }
 
@@ -201,7 +243,9 @@ func (a *Application) WaitForTermination(logger *zap.Logger, unreadyPeriodDelay,
 	select {
 	case <-a.shutter.Terminated():
 	case <-time.After(gracefulShutdownDelay):
-		logger.Warn("application did not terminate within graceful period of " + gracefulShutdownDelay.String() + ", forcing termination")
+		if gracefulShutdownDelay > 0 {
+			logger.Warn("application did not terminate within graceful period of " + gracefulShutdownDelay.String() + ", forcing termination")
+		}
 	}
 
 	if err := a.shutter.Err(); err != nil {
