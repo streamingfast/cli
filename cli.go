@@ -307,8 +307,13 @@ func visitAllCommands(cmd *cobra.Command, onCmd func(iterated *cobra.Command)) {
 
 func Root(usage, short string, opts ...CommandOption) *cobra.Command {
 	beforeAllHook := BeforeAllHook(func(cmd *cobra.Command) {
+		// We silence errors because we handle displaying the error coming out of the
+		// application ourself.
 		cmd.SilenceErrors = true
-		cmd.SilenceUsage = true
+
+		// We do not silence usage here, so on wrong flags or arguments, the user
+		// sees the proper usage information.
+
 		if short != "" {
 			cmd.Short = strings.TrimSpace(dedent.Dedent(short))
 		}
