@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
-	"github.com/lithammer/dedent"
 	"github.com/manifoldco/promptui"
 	"golang.org/x/term"
 )
@@ -21,6 +21,13 @@ import (
 //	userID := cli.Prompt("Please enter the user ID to issue the token to", cli.PromptTypeString)
 //
 // In this case, the `userID` variable will be of type `string`.
+//
+// If 'label' is a multiple line string, it will be split into separate lines
+// and each line will be rendered with the appropriate style but once answered,
+// only the final line changes, the previous written lines are not affected.
+//
+// This is why that rendering wise, favoring single line for 'label' will offer
+// a better user experience.
 func Prompt[T any](label string, transformer PromptTransformer[T], opts ...PromptOption) T {
 	out, err := MaybePrompt(label, transformer, opts...)
 	if err != nil {
@@ -101,18 +108,59 @@ func MaybePromptSelect[T any](label string, items []string, transformer PromptTr
 	return transformer(selection)
 }
 
-func AskConfirmation(label string, args ...interface{}) (answeredYes bool, wasAnswered bool) {
+func splitPromptLines(label string, args ...any) (preLines []string, finalLine string) {
+	content := fmt.Sprintf(label, args...)
+	lines := slices.Collect(strings.Lines(content))
+
+	sawNonEmptyLine := false
+	var finalLines []string
+	for i := len(lines) - 1; i >= 0; i-- {
+		if !sawNonEmptyLine && strings.TrimSpace(lines[i]) == "" {
+			continue
+		}
+
+		sawNonEmptyLine = true
+
+		line := strings.Trim(strings.ReplaceAll(lines[i], "\t", "  "), "\n\r")
+		finalLines = append(finalLines, line)
+	}
+
+	slices.Reverse(finalLines)
+
+	if len(finalLines) == 0 {
+		return nil, ""
+	}
+
+	return finalLines[:len(finalLines)-1], strings.TrimSpace(finalLines[len(finalLines)-1])
+}
+
+// AskConfirmation prompts the user for a yes/no confirmation.
+//
+// If 'label' is a multiple line string, it will be split into separate lines
+// and each line will be rendered with the appropriate style but once answered,
+// only the final line changes, the previous written lines are not affected.
+//
+// This is why that rendering wise, favoring single line for 'label' will offer
+// a better user experience.
+func AskConfirmation(label string, args ...any) (answeredYes bool, wasAnswered bool) {
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
 		wasAnswered = false
 		return
 	}
 
+	preLines, finalLine := splitPromptLines(label, args...)
+	if len(preLines) > 1 {
+		for _, line := range preLines {
+			fmt.Println(QuestionTextStyle.Render(line))
+		}
+	}
+
 	prompt := promptui.Prompt{
-		Label:       dedent.Dedent(fmt.Sprintf(label, args...)),
+		Label:       strings.TrimSuffix(finalLine, "?"),
 		Default:     "N",
 		AllowEdit:   true,
 		IsConfirm:   true,
-		HideEntered: true,
+		HideEntered: false,
 	}
 
 	_, err := prompt.Run()
@@ -206,8 +254,15 @@ func PromptRaw(label string, opts ...PromptOption) (answer string, err error) {
 		templates.Invalid = templates.Valid
 	}
 
+	preLines, finalLine := splitPromptLines(label)
+	if len(preLines) > 1 {
+		for _, line := range preLines {
+			fmt.Println(HeaderStyle.Render(line))
+		}
+	}
+
 	prompt := promptui.Prompt{
-		Label:     label,
+		Label:     finalLine,
 		Templates: templates,
 	}
 
