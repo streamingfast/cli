@@ -254,7 +254,7 @@ func PromptRaw(label string, opts ...PromptOption) (answer string, err error) {
 		templates.Invalid = templates.Valid
 	}
 
-	preLines, finalLine := splitPromptLines(label)
+	preLines, finalLine := splitPromptLines("%s", label)
 	if len(preLines) > 1 {
 		for _, line := range preLines {
 			fmt.Println(HeaderStyle.Render(line))
