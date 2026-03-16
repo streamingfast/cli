@@ -207,29 +207,41 @@ func ConfigureViper(envPrefix string) CommandOption {
 //	if vcs.revision != "" && vcs.time != "" return "{version} (Commit {vcs.revision[0:7]}, Commit Date {vcs.date})"
 func ConfigureVersion(version string) CommandOption {
 	return CommandOptionFunc(func(cmd *cobra.Command) {
-		info, ok := debug.ReadBuildInfo()
-		if !ok {
-			panic("we should have been able to retrieve info from 'runtime/debug#ReadBuildInfo'")
-		}
-
-		commit := findSetting("vcs.revision", info.Settings)
-		date := findSetting("vcs.time", info.Settings)
-
-		var labels []string
-		if len(commit) >= 7 {
-			labels = append(labels, fmt.Sprintf("Commit %s", commit[0:7]))
-		}
-
-		if date != "" {
-			labels = append(labels, fmt.Sprintf("Commit Date %s", date))
-		}
-
-		if len(labels) == 0 {
-			cmd.Version = version
-		} else {
-			cmd.Version = fmt.Sprintf("%s (%s)", version, strings.Join(labels, ", "))
-		}
+		cmd.Version = GetDisplayVersion(version)
 	})
+}
+
+// GetDisplayVersion is a helper function that can be used to get the same version string as the
+// one configured by [ConfigureVersion] in other places of your application, in logging for example.
+//
+// This string is the same that a user will see when doing `<app> --version` on the CLI.
+//
+// It panics if it cannot retrieve the build info [debug.ReadBuildInfo], which should not happen in
+// normal conditions as the build info is always available in Go binaries built with module support,
+// which is the default since Go 1.18.
+func GetDisplayVersion(version string) string {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		panic("we should have been able to retrieve info from 'runtime/debug#ReadBuildInfo'")
+	}
+
+	commit := findSetting("vcs.revision", info.Settings)
+	date := findSetting("vcs.time", info.Settings)
+
+	var labels []string
+	if len(commit) >= 7 {
+		labels = append(labels, fmt.Sprintf("Commit %s", commit[0:7]))
+	}
+
+	if date != "" {
+		labels = append(labels, fmt.Sprintf("Commit Date %s", date))
+	}
+
+	if len(labels) == 0 {
+		return version
+	}
+
+	return fmt.Sprintf("%s (%s)", version, strings.Join(labels, ", "))
 }
 
 func findSetting(key string, settings []debug.BuildSetting) (value string) {
